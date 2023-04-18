@@ -52,7 +52,7 @@ def save_config_file(config, path):
 
 
 def train(config):
-    pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
+    # pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
 
     model_module = DonutModelPLModule(config)
     data_module = DonutDataPLModule(config)

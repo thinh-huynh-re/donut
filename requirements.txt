@@ -1,0 +1,11 @@
+torch
+pytorch-lightning==1.9.4
+sconf
+Pillow
+timm
+transformers
+zss
+sentencepiece
+nltk
+datasets[vision]
+tensorboard
