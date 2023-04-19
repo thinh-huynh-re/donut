@@ -12,7 +12,7 @@ import numpy as np
 import PIL
 import timm
 import torch
-import torch.nn as nn
+from torch import nn, Tensor
 import torch.nn.functional as F
 from PIL import ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
@@ -22,6 +22,7 @@ from torchvision.transforms.functional import resize, rotate
 from transformers import MBartConfig, MBartForCausalLM, XLMRobertaTokenizer
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
+from PIL import Image
 
 
 class SwinEncoder(nn.Module):
@@ -104,7 +105,7 @@ class SwinEncoder(nn.Module):
                     new_swin_state_dict[x] = swin_state_dict[x]
             self.model.load_state_dict(new_swin_state_dict)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         """
         Args:
             x: (batch_size, num_channels, height, width)
@@ -114,9 +115,7 @@ class SwinEncoder(nn.Module):
         x = self.model.layers(x)
         return x
 
-    def prepare_input(
-        self, img: PIL.Image.Image, random_padding: bool = False
-    ) -> torch.Tensor:
+    def prepare_input(self, img: Image.Image, random_padding: bool = False) -> Tensor:
         """
         Convert PIL Image to tensor according to specified input_size after following steps below:
             - resize
@@ -175,7 +174,7 @@ class BARTDecoder(nn.Module):
         self.max_position_embeddings = max_position_embeddings
 
         self.tokenizer = XLMRobertaTokenizer.from_pretrained(
-            "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path
+            "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
         )
 
         self.model = MBartForCausalLM(
@@ -204,7 +203,7 @@ class BARTDecoder(nn.Module):
         # weight init with asian-bart
         if not name_or_path:
             bart_state_dict = MBartForCausalLM.from_pretrained(
-                "hyunwoongko/asian-bart-ecjk"
+                "hyunwoongko/asian-bart-ecjk",
             ).state_dict()
             new_bart_state_dict = self.model.state_dict()
             for x in new_bart_state_dict:
@@ -239,12 +238,12 @@ class BARTDecoder(nn.Module):
 
     def prepare_inputs_for_inference(
         self,
-        input_ids: torch.Tensor,
-        encoder_outputs: torch.Tensor,
+        input_ids: Tensor,
+        encoder_outputs: Tensor,
         past_key_values=None,
         past=None,
         use_cache: bool = None,
-        attention_mask: torch.Tensor = None,
+        attention_mask: Tensor = None,
     ):
         """
         Args:
@@ -272,13 +271,13 @@ class BARTDecoder(nn.Module):
     def forward(
         self,
         input_ids,
-        attention_mask: Optional[torch.Tensor] = None,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        past_key_values: Optional[torch.Tensor] = None,
-        labels: Optional[torch.Tensor] = None,
+        attention_mask: Optional[Tensor] = None,
+        encoder_hidden_states: Optional[Tensor] = None,
+        past_key_values: Optional[Tensor] = None,
+        labels: Optional[Tensor] = None,
         use_cache: bool = None,
-        output_attentions: Optional[torch.Tensor] = None,
-        output_hidden_states: Optional[torch.Tensor] = None,
+        output_attentions: Optional[Tensor] = None,
+        output_hidden_states: Optional[Tensor] = None,
         return_dict: bool = None,
     ):
         """
@@ -348,7 +347,7 @@ class BARTDecoder(nn.Module):
         )
 
     @staticmethod
-    def resize_bart_abs_pos_emb(weight: torch.Tensor, max_length: int) -> torch.Tensor:
+    def resize_bart_abs_pos_emb(weight: Tensor, max_length: int) -> Tensor:
         """
         Resize position embeddings
         Truncate if sequence length of Bart backbone is greater than given max_length,
@@ -450,9 +449,9 @@ class DonutModel(PreTrainedModel):
 
     def forward(
         self,
-        image_tensors: torch.Tensor,
-        decoder_input_ids: torch.Tensor,
-        decoder_labels: torch.Tensor,
+        image_tensors: Tensor,
+        decoder_input_ids: Tensor,
+        decoder_labels: Tensor,
     ):
         """
         Calculate a loss given an input image and a desired token sequence,
@@ -475,8 +474,8 @@ class DonutModel(PreTrainedModel):
         self,
         image: PIL.Image = None,
         prompt: str = None,
-        image_tensors: Optional[torch.Tensor] = None,
-        prompt_tensors: Optional[torch.Tensor] = None,
+        image_tensors: Optional[Tensor] = None,
+        prompt_tensors: Optional[Tensor] = None,
         return_json: bool = True,
         return_attentions: bool = False,
     ):
@@ -678,7 +677,11 @@ class DonutModel(PreTrainedModel):
                 e.g., `naver-clova-ix/donut-base`, or `naver-clova-ix/donut-base-finetuned-rvlcdip`
         """
         model = super(DonutModel, cls).from_pretrained(
-            pretrained_model_name_or_path, revision="official", *model_args, **kwargs
+            pretrained_model_name_or_path,
+            revision="official",
+            cache_dir=os.path.join("model", pretrained_model_name_or_path),
+            *model_args,
+            **kwargs,
         )
 
         # truncate or interplolate position embeddings of donut decoder
