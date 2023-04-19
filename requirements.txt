@@ -9,3 +9,4 @@ sentencepiece
 nltk
 datasets[vision]
 tensorboard
+wandb

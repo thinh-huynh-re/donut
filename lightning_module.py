@@ -18,11 +18,12 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 
+from config import Config
 from donut import DonutConfig, DonutModel
 
 
 class DonutModelPLModule(pl.LightningModule):
-    def __init__(self, config):
+    def __init__(self, config: Config):
         super().__init__()
         self.config = config
 

@@ -6,20 +6,23 @@ MIT License
 import argparse
 import datetime
 import json
+from logging import Logger
 import os
 import random
 from io import BytesIO
 from os.path import basename
 from pathlib import Path
+from typing import List
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 from pytorch_lightning.plugins import CheckpointIO
 from pytorch_lightning.utilities import rank_zero_only
-from sconf import Config
+from config import Config
 
 from donut import DonutDataset
 from lightning_module import DonutDataPLModule, DonutModelPLModule
@@ -41,7 +44,7 @@ class CustomCheckpointIO(CheckpointIO):
 
 
 @rank_zero_only
-def save_config_file(config, path):
+def save_config_file(config: Config, path: str) -> None:
     if not Path(path).exists():
         os.makedirs(path)
     save_path = Path(path) / "config.yaml"
@@ -51,7 +54,7 @@ def save_config_file(config, path):
         print(f"Config is saved at {save_path}")
 
 
-def train(config):
+def train(config: Config):
     # pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
 
     model_module = DonutModelPLModule(config)
@@ -93,12 +96,24 @@ def train(config):
     data_module.train_datasets = datasets["train"]
     data_module.val_datasets = datasets["validation"]
 
-    logger = TensorBoardLogger(
+    loggers: List[Logger] = []
+    tb_logger = TensorBoardLogger(
         save_dir=config.result_path,
         name=config.exp_name,
         version=config.exp_version,
         default_hp_metric=False,
     )
+    loggers.append(tb_logger)
+
+    if config.get("wandb", False):
+        wb_logger = WandbLogger(
+            project=config.exp_name,
+            name=config.exp_version,
+            save_dir=config.result_path,
+            config=config,
+            log_model=True,
+        )
+        loggers.append(wb_logger)
 
     lr_callback = LearningRateMonitor(logging_interval="step")
 
@@ -126,7 +141,7 @@ def train(config):
         gradient_clip_val=config.gradient_clip_val,
         precision=16,
         num_sanity_val_steps=0,
-        logger=logger,
+        logger=loggers,
         callbacks=[lr_callback, checkpoint_callback],
     )
 
