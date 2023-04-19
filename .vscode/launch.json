@@ -13,12 +13,10 @@
       "args": [
         "--config",
         "config/train_cord.yaml",
-        "--pretrained_model_name_or_path",
-        "naver-clova-ix/donut-base",
-        "--dataset_name_or_paths",
-        "[\"naver-clova-ix/cord-v2\"]",
         "--exp_version",
-        "test_experiment"
+        "test_experiment",
+        "--train_batch_sizes",
+        "[1]"
       ],
       "justMyCode": true
     }
