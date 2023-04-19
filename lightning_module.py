@@ -4,6 +4,7 @@ Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
 import math
+import os
 import random
 import re
 from pathlib import Path
@@ -13,7 +14,6 @@ import pytorch_lightning as pl
 import torch
 from nltk import edit_distance
 from pytorch_lightning.utilities import rank_zero_only
-from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
@@ -34,6 +34,7 @@ class DonutModelPLModule(pl.LightningModule):
                 max_length=self.config.max_length,
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
+                cache_dir=os.path.join("model", config.pretrained_model_name_or_path),
             )
         else:
             self.model = DonutModel(
@@ -41,6 +42,7 @@ class DonutModelPLModule(pl.LightningModule):
                     input_size=self.config.input_size,
                     max_length=self.config.max_length,
                     align_long_axis=self.config.align_long_axis,
+                    cache_dir=os.path.join("model", config.pretrained_model_name_or_path),
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
                 )

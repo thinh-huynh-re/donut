@@ -4,9 +4,11 @@ core.*
 # .vscode/*
 dataset/*
 result/*
+model/*
 misc/*
 !misc/*.png
 !dataset/.gitkeep
+!model/.gitkeep
 !result/.gitkeep
 # Byte-compiled / optimized / DLL files
 __pycache__/
