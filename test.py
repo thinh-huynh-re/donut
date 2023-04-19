@@ -19,9 +19,10 @@ from donut import DonutModel, JSONParseEvaluator, save_json
 class ArgumentParser(Tap):
     pretrained_model_name_or_path: str
     dataset_name_or_path: str
-    split: Optional[str] = 'test'
+    split: Optional[str] = "test"
     task_name: Optional[str] = None
     save_path: Optional[str] = None
+
 
 def test(args: ArgumentParser):
     pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
@@ -51,7 +52,9 @@ def test(args: ArgumentParser):
                 prompt=f"<s_{args.task_name}><s_question>{ground_truth['gt_parses'][0]['question'].lower()}</s_question><s_answer>",
             )["predictions"][0]
         else:
-            output = pretrained_model.inference(image=sample["image"], prompt=f"<s_{args.task_name}>")["predictions"][0]
+            output = pretrained_model.inference(
+                image=sample["image"], prompt=f"<s_{args.task_name}>"
+            )["predictions"][0]
 
         if args.task_name == "rvlcdip":
             gt = ground_truth["gt_parse"]

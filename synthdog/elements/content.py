@@ -13,7 +13,7 @@ from layouts import GridStack
 
 
 class TextReader:
-    def __init__(self, path, cache_size=2 ** 28, block_size=2 ** 20):
+    def __init__(self, path, cache_size=2**28, block_size=2**20):
         self.fp = open(path, "r", encoding="utf-8")
         self.length = 0
         self.offsets = [0]
@@ -76,8 +76,12 @@ class Content:
         self.font = components.BaseFont(**config.get("font", {}))
         self.layout = GridStack(config.get("layout", {}))
         self.textbox = TextBox(config.get("textbox", {}))
-        self.textbox_color = components.Switch(components.Gray(), **config.get("textbox_color", {}))
-        self.content_color = components.Switch(components.Gray(), **config.get("content_color", {}))
+        self.textbox_color = components.Switch(
+            components.Gray(), **config.get("textbox_color", {})
+        )
+        self.content_color = components.Switch(
+            components.Gray(), **config.get("content_color", {})
+        )
 
     def generate(self, size):
         width, height = size

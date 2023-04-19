@@ -23,14 +23,20 @@ def demo_process_vqa(input_img, question):
 def demo_process(input_img):
     global pretrained_model, task_prompt, task_name
     input_img = Image.fromarray(input_img)
-    output = pretrained_model.inference(image=input_img, prompt=task_prompt)["predictions"][0]
+    output = pretrained_model.inference(image=input_img, prompt=task_prompt)[
+        "predictions"
+    ][0]
     return output
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--task", type=str, default="docvqa")
-    parser.add_argument("--pretrained_path", type=str, default="naver-clova-ix/donut-base-finetuned-docvqa")
+    parser.add_argument(
+        "--pretrained_path",
+        type=str,
+        default="naver-clova-ix/donut-base-finetuned-docvqa",
+    )
     parser.add_argument("--port", type=int, default=None)
     parser.add_argument("--url", type=str, default=None)
     parser.add_argument("--sample_img_path", type=str)

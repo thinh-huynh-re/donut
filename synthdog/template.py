@@ -103,7 +103,9 @@ class SynthDoG(templates.Template):
         metadata_filepath = os.path.join(output_dirpath, metadata_filename)
         os.makedirs(os.path.dirname(metadata_filepath), exist_ok=True)
 
-        metadata = self.format_metadata(image_filename=image_filename, keys=["text_sequence"], values=[label])
+        metadata = self.format_metadata(
+            image_filename=image_filename, keys=["text_sequence"], values=[label]
+        )
         with open(metadata_filepath, "a") as fp:
             json.dump(metadata, fp, ensure_ascii=False)
             fp.write("\n")
@@ -119,7 +121,9 @@ class SynthDoG(templates.Template):
             keys: List of task_name
             values: List of actual gt data corresponding to each task_name
         """
-        assert len(keys) == len(values), "Length does not match: keys({}), values({})".format(len(keys), len(values))
+        assert len(keys) == len(
+            values
+        ), "Length does not match: keys({}), values({})".format(len(keys), len(values))
 
         _gt_parse_v = dict()
         for k, v in zip(keys, values):

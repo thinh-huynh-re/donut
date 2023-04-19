@@ -11,3 +11,4 @@ datasets[vision]
 tensorboard
 wandb
 typed-argument-parser
+black
