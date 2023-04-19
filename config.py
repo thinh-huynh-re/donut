@@ -27,5 +27,6 @@ class Config(SConfig):
     gradient_clip_val: float
     verbose: bool
 
+    wandb: bool
     exp_name: str
     exp_version: str
