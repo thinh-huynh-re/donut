@@ -12,3 +12,4 @@ tensorboard
 wandb
 typed-argument-parser
 black
+gradio
