@@ -3,16 +3,12 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
-import argparse
 import datetime
-import json
-from logging import Logger
 import os
-import random
-from io import BytesIO
+from logging import Logger
 from os.path import basename
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import pytorch_lightning as pl
@@ -22,8 +18,9 @@ from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 from pytorch_lightning.plugins import CheckpointIO
 from pytorch_lightning.utilities import rank_zero_only
-from config import Config
+from tap import Tap
 
+from config import Config
 from donut import DonutDataset
 from lightning_module import DonutDataPLModule, DonutModelPLModule
 
@@ -168,11 +165,15 @@ def train(config: Config):
     trainer.fit(model_module, data_module)
 
 
+class ArgumentParser(Tap):
+    config: str
+    exp_version: Optional[str] = None
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, required=True)
-    parser.add_argument("--exp_version", type=str, required=False)
+    parser = ArgumentParser()
     args, left_argv = parser.parse_known_args()
+    args: ArgumentParser
 
     config = Config(args.config)
     config.argv_update(left_argv)
