@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from sconf import Config as SConfig
 
@@ -7,11 +7,11 @@ class Config(SConfig):
     resume_from_checkpoint_path: Optional[bool]
     result_path: str
     pretrained_model_name_or_path: str
-    dataset_name_or_paths: list[str]
+    dataset_name_or_paths: List[str]
     sort_json_key: bool
-    train_batch_sizes: list[int]
-    val_batch_sizes: list[int]
-    input_size: list[int]
+    train_batch_sizes: List[int]
+    val_batch_sizes: List[int]
+    input_size: List[int]
     max_length: int
     align_long_axis: bool
     num_nodes: int
