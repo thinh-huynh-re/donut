@@ -16,7 +16,7 @@ class Config(SConfig):
     align_long_axis: bool
     num_nodes: int
     seed: int
-    lr: float | str
+    lr: float
     warmup_steps: int
     num_training_samples_per_epoch: int
     max_epochs: int
