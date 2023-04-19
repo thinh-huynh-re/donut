@@ -20,7 +20,7 @@ class ArgumentParser(Tap):
     pretrained_model_name_or_path: str
     dataset_name_or_path: str
     split: Optional[str] = "test"
-    task_name: Optional[str] = None
+    task_name: Optional[str] = None  # equals to dataset_name_or_path if None
     save_path: Optional[str] = None
 
 
@@ -41,7 +41,13 @@ def test(args: ArgumentParser):
     accs = []
 
     evaluator = JSONParseEvaluator()
-    dataset = load_dataset(args.dataset_name_or_path, split=args.split)
+    dataset = load_dataset(
+        args.dataset_name_or_path,
+        split=args.split,
+        cache_dir=None
+        if args.dataset_name_or_path is None
+        else os.path.join("dataset", args.dataset_name_or_path),
+    )
 
     for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):
         ground_truth = json.loads(sample["ground_truth"])

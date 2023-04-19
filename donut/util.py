@@ -66,7 +66,9 @@ class DonutDataset(Dataset):
         self.dataset = load_dataset(
             dataset_name_or_path,
             split=self.split,
-            cache_dir=os.path.join("dataset", dataset_name_or_path),
+            cache_dir=None
+            if dataset_name_or_path is None
+            else os.path.join("dataset", dataset_name_or_path),
         )
         self.dataset_length = len(self.dataset)
 
