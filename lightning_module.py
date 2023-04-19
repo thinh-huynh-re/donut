@@ -152,7 +152,7 @@ class DonutModelPLModule(pl.LightningModule):
 
 
 class DonutDataPLModule(pl.LightningDataModule):
-    def __init__(self, config):
+    def __init__(self, config: Config):
         super().__init__()
         self.config = config
         self.train_batch_sizes = self.config.train_batch_sizes

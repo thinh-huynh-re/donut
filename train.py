@@ -110,7 +110,7 @@ def train(config: Config):
             project=config.exp_name,
             name=config.exp_version,
             save_dir=config.result_path,
-            config=config,
+            config=config.asdict(),
             log_model=True,
         )
         loggers.append(wb_logger)
