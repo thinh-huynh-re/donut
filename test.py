@@ -3,22 +3,27 @@ Donut
 Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
-import argparse
 import json
 import os
-import re
-from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import torch
 from datasets import load_dataset
-from PIL import Image
+from tap import Tap
 from tqdm import tqdm
 
-from donut import DonutModel, JSONParseEvaluator, load_json, save_json
+from donut import DonutModel, JSONParseEvaluator, save_json
 
 
-def test(args):
+class ArgumentParser(Tap):
+    pretrained_model_name_or_path: str
+    dataset_name_or_path: str
+    split: Optional[str] = 'test'
+    task_name: Optional[str] = None
+    save_path: Optional[str] = None
+
+def test(args: ArgumentParser):
     pretrained_model = DonutModel.from_pretrained(args.pretrained_model_name_or_path)
 
     if torch.cuda.is_available():
@@ -84,13 +89,15 @@ def test(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--pretrained_model_name_or_path", type=str)
-    parser.add_argument("--dataset_name_or_path", type=str)
-    parser.add_argument("--split", type=str, default="test")
-    parser.add_argument("--task_name", type=str, default=None)
-    parser.add_argument("--save_path", type=str, default=None)
-    args, left_argv = parser.parse_known_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--pretrained_model_name_or_path", type=str)
+    # parser.add_argument("--dataset_name_or_path", type=str)
+    # parser.add_argument("--split", type=str, default="test")
+    # parser.add_argument("--task_name", type=str, default=None)
+    # parser.add_argument("--save_path", type=str, default=None)
+    parser = ArgumentParser()
+    args, _ = parser.parse_known_args()
+    args: ArgumentParser
 
     if args.task_name is None:
         args.task_name = os.path.basename(args.dataset_name_or_path)

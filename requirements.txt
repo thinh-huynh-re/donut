@@ -10,3 +10,4 @@ nltk
 datasets[vision]
 tensorboard
 wandb
+typed-argument-parser
