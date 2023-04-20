@@ -33,6 +33,15 @@
         "naver-clova-ix/cord-v2"
       ],
       "justMyCode": true
+    },
+    {
+      "name": "Analyze dataset",
+      "type": "python",
+      "request": "launch",
+      "program": "analyze_dataset.py",
+      "console": "integratedTerminal",
+      "args": [],
+      "justMyCode": true
     }
   ]
 }

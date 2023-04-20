@@ -12,17 +12,16 @@ import numpy as np
 import PIL
 import timm
 import torch
-from torch import nn, Tensor
 import torch.nn.functional as F
-from PIL import ImageOps
+from PIL import Image, ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
+from torch import Tensor, nn
 from torchvision import transforms
 from torchvision.transforms.functional import resize, rotate
 from transformers import MBartConfig, MBartForCausalLM, XLMRobertaTokenizer
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
-from PIL import Image
 
 
 class SwinEncoder(nn.Module):
@@ -472,8 +471,8 @@ class DonutModel(PreTrainedModel):
 
     def inference(
         self,
-        image: PIL.Image = None,
-        prompt: str = None,
+        image: Image.Image,
+        prompt: str,
         image_tensors: Optional[Tensor] = None,
         prompt_tensors: Optional[Tensor] = None,
         return_json: bool = True,
@@ -511,7 +510,7 @@ class DonutModel(PreTrainedModel):
 
         prompt_tensors = prompt_tensors.to(self.device)
 
-        last_hidden_state = self.encoder(image_tensors)
+        last_hidden_state: Tensor = self.encoder(image_tensors)
         if self.device.type != "cuda":
             last_hidden_state = last_hidden_state.to(torch.float32)
 

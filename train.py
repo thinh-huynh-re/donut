@@ -10,7 +10,6 @@ from os.path import basename
 from pathlib import Path
 from typing import List, Optional
 
-import numpy as np
 import pytorch_lightning as pl
 import torch
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint

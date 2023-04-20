@@ -6,7 +6,6 @@ MIT License
 import json
 import os
 import random
-from collections import defaultdict
 from typing import Any, Dict, List, Tuple, Union
 
 import torch
@@ -16,6 +15,8 @@ from nltk import edit_distance
 from torch.utils.data import Dataset
 from transformers.modeling_utils import PreTrainedModel
 from zss import Node
+
+from donut.model import DonutModel
 
 
 def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
@@ -43,7 +44,7 @@ class DonutDataset(Dataset):
     def __init__(
         self,
         dataset_name_or_path: str,
-        donut_model: PreTrainedModel,
+        donut_model: DonutModel,
         max_length: int,
         split: str = "train",
         ignore_id: int = -100,
@@ -53,7 +54,7 @@ class DonutDataset(Dataset):
     ):
         super().__init__()
 
-        self.donut_model = donut_model
+        self.donut_model: DonutModel = donut_model
         self.max_length = max_length
         self.split = split
         self.ignore_id = ignore_id
