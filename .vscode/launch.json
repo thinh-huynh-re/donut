@@ -42,6 +42,15 @@
       "console": "integratedTerminal",
       "args": [],
       "justMyCode": true
+    },
+    {
+      "name": "Extract dataset",
+      "type": "python",
+      "request": "launch",
+      "program": "extract_dataset.py",
+      "console": "integratedTerminal",
+      "args": ["--config", "config/train_cord.yaml"],
+      "justMyCode": true
     }
   ]
 }

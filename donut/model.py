@@ -172,7 +172,7 @@ class BARTDecoder(nn.Module):
         self.decoder_layer = decoder_layer
         self.max_position_embeddings = max_position_embeddings
 
-        self.tokenizer = XLMRobertaTokenizer.from_pretrained(
+        self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
             "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
         )
 
@@ -592,6 +592,50 @@ class DonutModel(PreTrainedModel):
                 return output
         elif type(obj) == list:
             return r"<sep/>".join(
+                [
+                    self.json2token(
+                        item, update_special_tokens_for_json_key, sort_json_key
+                    )
+                    for item in obj
+                ]
+            )
+        else:
+            obj = str(obj)
+            if f"<{obj}/>" in self.decoder.tokenizer.all_special_tokens:
+                obj = f"<{obj}/>"  # for categorical special tokens
+            return obj
+
+    def json2tokenv2(
+        self,
+        obj: Any,
+        update_special_tokens_for_json_key: bool = True,
+        sort_json_key: bool = True,
+    ):
+        """
+        Convert an ordered JSON object into a token sequence
+        """
+        if type(obj) == dict:
+            if len(obj) == 1 and "text_sequence" in obj:
+                return obj["text_sequence"]
+            else:
+                output = ""
+                if sort_json_key:
+                    keys = sorted(obj.keys(), reverse=True)
+                else:
+                    keys = obj.keys()
+                for k in keys:
+                    if update_special_tokens_for_json_key:
+                        self.decoder.add_special_tokens([rf"<s_{k}>", rf"</s_{k}>"])
+                    output += (
+                        rf"<s_{k}>"
+                        + self.json2token(
+                            obj[k], update_special_tokens_for_json_key, sort_json_key
+                        )
+                        + rf"</s_{k}>"
+                    )
+                return output
+        elif type(obj) == list:
+            return r"<sep>".join(
                 [
                     self.json2token(
                         item, update_special_tokens_for_json_key, sort_json_key
