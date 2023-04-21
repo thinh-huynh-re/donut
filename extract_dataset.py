@@ -48,7 +48,7 @@ def extract_dataset(config: Config):
         cache_dir=os.path.join("dataset", dataset_name_or_path),
     )
 
-    for i, sample in tqdm(enumerate(dataset)):
+    for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
         ground_truth = json.loads(sample["ground_truth"])
         if (
             "gt_parses" in ground_truth
@@ -84,13 +84,15 @@ def extract_dataset(config: Config):
 
         image: Image.Image = sample["image"]
         image.save(os.path.join(dir_path, f"{i}.png"))
+
         break
 
     donut_model.decoder.add_special_tokens([task_start_token, prompt_end_token])
     prompt_end_token_id = donut_model.decoder.tokenizer.convert_tokens_to_ids(
         prompt_end_token
     )
-    print("Done")
+    tokenizer = donut_model.decoder.tokenizer
+    print("Done", tokenizer)
 
 
 class ArgumentParser(Tap):

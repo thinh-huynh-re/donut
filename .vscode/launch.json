@@ -40,7 +40,7 @@
       "request": "launch",
       "program": "analyze_dataset.py",
       "console": "integratedTerminal",
-      "args": [],
+      "args": ["--config", "config/train_cord.yaml"],
       "justMyCode": true
     },
     {
