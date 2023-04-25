@@ -74,6 +74,7 @@ class DonutDataset(Dataset):
         self.dataset_length = len(self.dataset)
 
         self.gt_token_sequences = []
+        self.gt_jsons_list = []  # TODO: remove this
         for sample in self.dataset:
             ground_truth = json.loads(sample["ground_truth"])
             if (
@@ -86,6 +87,8 @@ class DonutDataset(Dataset):
                     ground_truth["gt_parse"], dict
                 )
                 gt_jsons = [ground_truth["gt_parse"]]
+
+            self.gt_jsons_list.append(gt_jsons)  # TODO: remove this
 
             self.gt_token_sequences.append(
                 [

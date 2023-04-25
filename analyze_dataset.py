@@ -4,56 +4,53 @@ from os.path import basename
 from typing import Optional
 
 from tap import Tap
+from transformers import XLMRobertaTokenizer
 
 from config import Config
 from donut import DonutDataset
 from donut.model import DonutModel
-from lightning_module import DonutDataPLModule, DonutModelPLModule
+from lightning_module import DonutModelPLModule
+
+
+def save_tokenizer(tokenizer: XLMRobertaTokenizer):
+    vocab = tokenizer.get_vocab()
+    import json
+
+    with open("vocab.json", "w", encoding="utf8") as json_file:
+        json.dump(vocab, json_file, ensure_ascii=False, indent=4)
 
 
 def analyze_dataset(config: Config):
     # pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
 
     model_module = DonutModelPLModule(config)
-    data_module = DonutDataPLModule(config)
+
+    split = "train"
+    dataset_name_or_path = config.dataset_name_or_paths[0]
+
+    task_name = os.path.basename(
+        dataset_name_or_path
+    )  # e.g., cord-v2, docvqa, rvlcdip, ...
 
     # add datasets to data_module
-    datasets = {"train": [], "validation": []}
-    for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
-        task_name = os.path.basename(
-            dataset_name_or_path
-        )  # e.g., cord-v2, docvqa, rvlcdip, ...
-
-        for split in ["train", "validation"]:
-            datasets[split].append(
-                DonutDataset(
-                    dataset_name_or_path=dataset_name_or_path,
-                    donut_model=model_module.model,
-                    max_length=config.max_length,
-                    split=split,
-                    task_start_token=config.task_start_tokens[i]
-                    if config.get("task_start_tokens", None)
-                    else f"<s_{task_name}>",
-                    prompt_end_token="<s_answer>"
-                    if "docvqa" in dataset_name_or_path
-                    else f"<s_{task_name}>",
-                    sort_json_key=config.sort_json_key,
-                )
-            )
-            # prompt_end_token is used for ignoring a given prompt in a loss function
-            # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},
-            # set prompt_end_token to "<s_answer>"
-    data_module.train_datasets = datasets["train"]
-    data_module.val_datasets = datasets["validation"]
+    dataset = DonutDataset(
+        dataset_name_or_path=dataset_name_or_path,
+        donut_model=model_module.model,
+        max_length=config.max_length,
+        split=split,
+        task_start_token=f"<s_{task_name}>",
+        prompt_end_token=f"<s_{task_name}>",
+        sort_json_key=config.sort_json_key,
+    )
+    # prompt_end_token is used for ignoring a given prompt in a loss function
+    # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},
+    # set prompt_end_token to "<s_answer>"
 
     model: DonutModel = model_module.model
     tokenizer = model.decoder.tokenizer
 
-    for dataset in datasets["train"]:
-        for input_tensor, input_ids, labels in dataset:
-            print(tokenizer.convert_ids_to_tokens(input_ids))
-            break
-        break
+    input_tensor, input_ids, labels = dataset[0]
+    print(tokenizer.convert_ids_to_tokens(input_ids))
 
 
 class ArgumentParser(Tap):
