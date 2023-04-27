@@ -23,7 +23,7 @@ from donut import DonutConfig, DonutModel
 
 
 class DonutModelPLModule(pl.LightningModule):
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, local_files_only=False):
         super().__init__()
         self.config = config
 
@@ -34,6 +34,7 @@ class DonutModelPLModule(pl.LightningModule):
                 max_length=self.config.max_length,
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
+                local_files_only=local_files_only,
                 # cache_dir=os.path.join("model", config.pretrained_model_name_or_path),
             )
         else:

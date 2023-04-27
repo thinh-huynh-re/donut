@@ -21,6 +21,22 @@
       "justMyCode": true
     },
     {
+      "name": "Train Receipts",
+      "type": "python",
+      "request": "launch",
+      "program": "train.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--config",
+        "config/train_receipts.yaml",
+        "--exp_version",
+        "test_experiment",
+        "--train_batch_sizes",
+        "[1]"
+      ],
+      "justMyCode": true
+    },
+    {
       "name": "Test CORD",
       "type": "python",
       "request": "launch",

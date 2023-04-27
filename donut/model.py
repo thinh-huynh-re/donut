@@ -167,6 +167,7 @@ class BARTDecoder(nn.Module):
         decoder_layer: int,
         max_position_embeddings: int,
         name_or_path: Union[str, bytes, os.PathLike] = None,
+        local_files_only: bool = False,
     ):
         super().__init__()
         self.decoder_layer = decoder_layer
@@ -174,6 +175,7 @@ class BARTDecoder(nn.Module):
 
         self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
             "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
+            local_files_only=local_files_only,
         )
 
         self.model = MBartForCausalLM(
@@ -203,6 +205,7 @@ class BARTDecoder(nn.Module):
         if not name_or_path:
             bart_state_dict = MBartForCausalLM.from_pretrained(
                 "hyunwoongko/asian-bart-ecjk",
+                local_files_only=local_files_only,
             ).state_dict()
             new_bart_state_dict = self.model.state_dict()
             for x in new_bart_state_dict:
