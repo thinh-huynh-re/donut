@@ -474,8 +474,8 @@ class DonutModel(PreTrainedModel):
 
     def inference(
         self,
-        image: Image.Image,
-        prompt: str,
+        image: Image.Image = None,
+        prompt: str = None,
         image_tensors: Optional[Tensor] = None,
         prompt_tensors: Optional[Tensor] = None,
         return_json: bool = True,
