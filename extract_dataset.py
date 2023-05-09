@@ -46,6 +46,7 @@ def extract_dataset(config: Config):
         dataset_name_or_path,
         split=split,
         cache_dir=os.path.join("dataset", dataset_name_or_path),
+        use_auth_token=True,
     )
 
     for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
@@ -84,8 +85,6 @@ def extract_dataset(config: Config):
 
         image: Image.Image = sample["image"]
         image.save(os.path.join(dir_path, f"{i}.png"))
-
-        break
 
     donut_model.decoder.add_special_tokens([task_start_token, prompt_end_token])
     prompt_end_token_id = donut_model.decoder.tokenizer.convert_tokens_to_ids(

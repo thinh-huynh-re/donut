@@ -47,6 +47,7 @@ def test(args: ArgumentParser):
         cache_dir=None
         if args.dataset_name_or_path is None
         else os.path.join("dataset", args.dataset_name_or_path),
+        use_auth_token=True,
     )
 
     for idx, sample in tqdm(enumerate(dataset), total=len(dataset)):

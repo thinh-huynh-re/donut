@@ -70,6 +70,7 @@ class DonutDataset(Dataset):
             cache_dir=None
             if dataset_name_or_path is None
             else os.path.join("dataset", dataset_name_or_path),
+            use_auth_token=True,
         )
         self.dataset_length = len(self.dataset)
 
