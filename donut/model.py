@@ -178,6 +178,8 @@ class BARTDecoder(nn.Module):
             # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
             local_files_only=local_files_only,
         )
+        
+        print('Size of tokenizer: ', len(self.tokenizer))
 
         self.model = MBartForCausalLM(
             config=MBartConfig(
