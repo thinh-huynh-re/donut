@@ -56,7 +56,7 @@
       "request": "launch",
       "program": "analyze_dataset.py",
       "console": "integratedTerminal",
-      "args": ["--config", "config/train_cord.yaml"],
+      "args": ["--config", "config/train_receipts.yaml"],
       "justMyCode": true
     },
     {
