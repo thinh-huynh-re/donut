@@ -174,7 +174,8 @@ class BARTDecoder(nn.Module):
         self.max_position_embeddings = max_position_embeddings
 
         self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
-            "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
+            "xlm-roberta-large",
+            # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
             local_files_only=local_files_only,
         )
 
