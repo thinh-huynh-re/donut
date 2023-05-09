@@ -51,6 +51,7 @@ def analyze_dataset(config: Config):
 
     input_tensor, input_ids, labels = dataset[0]
     print(tokenizer.convert_ids_to_tokens(input_ids))
+    print(dataset.gt_jsons_list[0])
 
 
 class ArgumentParser(Tap):

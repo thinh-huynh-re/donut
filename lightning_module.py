@@ -28,7 +28,7 @@ class DonutModelPLModule(pl.LightningModule):
         self.config = config
 
         if self.config.get("pretrained_model_name_or_path", False):
-            self.model = DonutModel.from_pretrained(
+            self.model: DonutModel = DonutModel.from_pretrained(
                 self.config.pretrained_model_name_or_path,
                 input_size=self.config.input_size,
                 max_length=self.config.max_length,
