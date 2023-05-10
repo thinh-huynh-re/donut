@@ -11,7 +11,7 @@ align_long_axis: False
 num_nodes: 1
 seed: 2022
 lr: 3e-4
-warmup_steps: 0 # 1004/2*30/10, 10% = num_training_samples_per_epoch / num_workers * max_epochs / 10
+warmup_steps: 200 # 1004/2*30/10, 10% = num_training_samples_per_epoch / num_workers * max_epochs / 10
 num_training_samples_per_epoch: 1004
 max_epochs: 30
 max_steps: -1
