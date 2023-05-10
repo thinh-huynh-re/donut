@@ -6,7 +6,8 @@ from sconf import Config as SConfig
 class Config(SConfig):
     resume_from_checkpoint_path: Optional[bool]
     result_path: str
-    pretrained_model_name_or_path: str
+    tokenizer_name_or_path: str # path to tokenizer
+    pretrained_model_name_or_path: str # path to model
     dataset_name_or_paths: List[str]
     sort_json_key: bool
     train_batch_sizes: List[int]
@@ -26,6 +27,7 @@ class Config(SConfig):
     check_val_every_n_epoch: int
     gradient_clip_val: float
     verbose: bool
+    local_files_only: bool
 
     wandb: bool
     exp_name: str

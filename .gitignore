@@ -8,7 +8,9 @@ model/*
 misc/*
 !misc/*.png
 !dataset/.gitkeep
+!dataset/README.md
 !model/.gitkeep
+!model/README.md
 !result/.gitkeep
 # Byte-compiled / optimized / DLL files
 __pycache__/

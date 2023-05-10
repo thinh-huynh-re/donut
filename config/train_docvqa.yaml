@@ -1,6 +1,7 @@
 resume_from_checkpoint_path: null 
 result_path: "./result"
 pretrained_model_name_or_path: "naver-clova-ix/donut-base"
+tokenizer_name_or_path: "naver-clova-ix/donut-base"
 dataset_name_or_paths: ["./dataset/docvqa"] # should be prepared from https://rrc.cvc.uab.es/?ch=17
 sort_json_key: True
 train_batch_sizes: [2]
@@ -22,3 +23,4 @@ check_val_every_n_epoch: 1
 gradient_clip_val: 0.25
 verbose: True
 wandb: True
+local_files_only: False
