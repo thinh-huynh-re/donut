@@ -174,9 +174,11 @@ class BARTDecoder(nn.Module):
         self.decoder_layer = decoder_layer
         self.max_position_embeddings = max_position_embeddings
 
+        tokenizer_name_or_path = "hyunwoongko/asian-bart-ecjk" if not tokenizer_name_or_path else tokenizer_name_or_path
         self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
-            "hyunwoongko/asian-bart-ecjk" if not tokenizer_name_or_path else tokenizer_name_or_path,
+            tokenizer_name_or_path,
             local_files_only=local_files_only,
+            cache_dir=os.path.join("model", tokenizer_name_or_path),
         )
         
         print('Size of tokenizer: ', len(self.tokenizer))
