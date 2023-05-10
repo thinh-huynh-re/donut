@@ -167,6 +167,7 @@ class BARTDecoder(nn.Module):
         decoder_layer: int,
         max_position_embeddings: int,
         name_or_path: Union[str, bytes, os.PathLike] = None,
+        tokenizer_name_or_path: Union[str, bytes, os.PathLike] = None,
         local_files_only: bool = False,
     ):
         super().__init__()
@@ -174,8 +175,7 @@ class BARTDecoder(nn.Module):
         self.max_position_embeddings = max_position_embeddings
 
         self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
-            "xlm-roberta-base",
-            # "hyunwoongko/asian-bart-ecjk" if not name_or_path else name_or_path,
+            "hyunwoongko/asian-bart-ecjk" if not tokenizer_name_or_path else tokenizer_name_or_path,
             local_files_only=local_files_only,
         )
         
@@ -411,6 +411,9 @@ class DonutConfig(PretrainedConfig):
         max_position_embeddings: int = None,
         max_length: int = 1536,
         name_or_path: Union[str, bytes, os.PathLike] = "",
+        tokenizer_name_or_path: Union[str, bytes, os.PathLike] = "",
+        local_files_only: bool = False,
+        use_local_files_only: bool = False,
         **kwargs,
     ):
         super().__init__()
@@ -425,6 +428,10 @@ class DonutConfig(PretrainedConfig):
         self.max_length = max_length
         self.name_or_path = name_or_path
 
+        # additional
+        self.local_files_only = local_files_only
+        self.tokenizer_name_or_path = tokenizer_name_or_path
+        self.use_local_files_only = use_local_files_only
 
 class DonutModel(PreTrainedModel):
     r"""
@@ -450,6 +457,8 @@ class DonutModel(PreTrainedModel):
             max_position_embeddings=self.config.max_position_embeddings,
             decoder_layer=self.config.decoder_layer,
             name_or_path=self.config.name_or_path,
+            tokenizer_name_or_path=self.config.tokenizer_name_or_path,
+            local_files_only=self.config.use_local_files_only,
         )
 
     def forward(

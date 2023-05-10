@@ -56,8 +56,8 @@
       "request": "launch",
       "program": "analyze_dataset.py",
       "console": "integratedTerminal",
-      "args": ["--config", "config/train_receipts_local.yaml"],
-      "justMyCode": true
+      "args": ["--config", "config/train_receipts.yaml"],
+      "justMyCode": false
     },
     {
       "name": "Extract dataset",

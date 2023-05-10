@@ -23,7 +23,7 @@ from donut import DonutConfig, DonutModel
 
 
 class DonutModelPLModule(pl.LightningModule):
-    def __init__(self, config: Config, local_files_only=False):
+    def __init__(self, config: Config):
         super().__init__()
         self.config = config
 
@@ -34,7 +34,16 @@ class DonutModelPLModule(pl.LightningModule):
                 max_length=self.config.max_length,
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
-                local_files_only=local_files_only,
+                local_files_only=self.config.local_files_only, # default
+                tokenizer_name_or_path=self.config.tokenizer_name_or_path,
+                use_local_files_only=self.config.local_files_only, # to tell submodules in DonutModel
+
+                # config=DonutConfig(
+                #     input_size=self.config.input_size,
+                #     max_length=self.config.max_length,
+                #     align_long_axis=self.config.align_long_axis,
+                #     local_files_only=self.config.local_files_only,
+                # ),
                 # cache_dir=os.path.join("model", config.pretrained_model_name_or_path),
             )
         else:
@@ -43,6 +52,8 @@ class DonutModelPLModule(pl.LightningModule):
                     input_size=self.config.input_size,
                     max_length=self.config.max_length,
                     align_long_axis=self.config.align_long_axis,
+                    # local_files_only=self.config.local_files_only,
+                    # tokenizer_name_or_path=self.config.tokenizer_name_or_path
                     # cache_dir=os.path.join("model", config.pretrained_model_name_or_path),
                     # with DonutConfig, the architecture customization is available, e.g.,
                     # encoder_layer=[2,2,14,2], decoder_layer=4, ...
