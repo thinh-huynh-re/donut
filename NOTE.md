@@ -74,3 +74,9 @@ python train.py --config config/train_receipts.yaml
 ```
 python train.py --config config/train_receipts_local.yaml --devices [2]
 ```
+
+### Sync wandb
+
+```
+wandb sync <log_dir>
+```
