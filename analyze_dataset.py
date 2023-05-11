@@ -41,6 +41,7 @@ def analyze_dataset(config: Config):
         task_start_token=f"<s_{task_name}>",
         prompt_end_token=f"<s_{task_name}>",
         sort_json_key=config.sort_json_key,
+        local_files_only=config.local_files_only,
     )
     # prompt_end_token is used for ignoring a given prompt in a loss function
     # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},

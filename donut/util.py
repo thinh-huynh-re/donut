@@ -13,8 +13,11 @@ import zss
 from datasets import load_dataset
 from nltk import edit_distance
 from torch.utils.data import Dataset
-from transformers.modeling_utils import PreTrainedModel
 from zss import Node
+import itertools
+import glob
+from tqdm import tqdm
+from PIL import Image
 
 from donut.model import DonutModel
 
@@ -27,6 +30,49 @@ def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
 def load_json(json_path: Union[str, bytes, os.PathLike]):
     with open(json_path, "r") as f:
         return json.load(f)
+
+
+class DonutRawDataset(Dataset):
+    def __init__(
+        self,
+        dataset_name_or_path: str = "dataset/DocumentUnderstanding/receipts",
+        split: str = "train",
+    ):
+        exts = ["jpg", "png", "jpeg"]
+
+        dataset_dir = os.path.join('dataset', dataset_name_or_path, split)
+
+        image_paths = list(
+            itertools.chain(
+                *[glob.glob(f"{dataset_dir}/*.{ext}") for ext in exts]
+            )
+        )
+        json_paths = glob.glob(f"{dataset_dir}/*.json")
+
+        self.metadata: List[Dict[str, Any]] = []
+
+        for image_path in tqdm(image_paths):
+            name = os.path.basename(image_path).split(".")[0]
+            json_path = f"{dataset_dir}/{name}.json"
+
+            # Make sure each image has exactly one corresponding json file
+            if json_path not in json_paths:
+                raise Exception(f"JSON not found: {json_path}")
+
+            with open(json_path, encoding="utf-8") as fh:
+                data = json.load(fh)
+                del data["shapes"]
+                ground_truth = json.dumps(data, ensure_ascii=False)
+
+            self.metadata.append(
+                dict(image=Image.open(image_path), ground_truth=ground_truth)
+            )
+
+    def __len__(self) -> int:
+        return len(self.metadata)
+
+    def __getitem__(self, idx: int) -> Tuple[Dict[str, Any]]:
+        return self.metadata[idx]
 
 
 class DonutDataset(Dataset):
@@ -51,6 +97,7 @@ class DonutDataset(Dataset):
         task_start_token: str = "<s>",
         prompt_end_token: str = None,
         sort_json_key: bool = True,
+        local_files_only: bool = False,
     ):
         super().__init__()
 
@@ -64,14 +111,17 @@ class DonutDataset(Dataset):
         )
         self.sort_json_key = sort_json_key
 
-        self.dataset = load_dataset(
-            dataset_name_or_path,
-            split=self.split,
-            cache_dir=None
-            if dataset_name_or_path is None
-            else os.path.join("dataset", dataset_name_or_path),
-            use_auth_token=True,
-        )
+        if local_files_only:
+            self.dataset = DonutRawDataset(dataset_name_or_path, split)
+        else:
+            self.dataset = load_dataset(
+                dataset_name_or_path,
+                split=self.split,
+                cache_dir=None
+                if dataset_name_or_path is None
+                else os.path.join("dataset", dataset_name_or_path),
+                use_auth_token=not local_files_only,
+            )
         self.dataset_length = len(self.dataset)
 
         self.gt_token_sequences = []

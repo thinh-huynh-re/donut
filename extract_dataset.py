@@ -46,7 +46,7 @@ def extract_dataset(config: Config):
         dataset_name_or_path,
         split=split,
         cache_dir=os.path.join("dataset", dataset_name_or_path),
-        use_auth_token=True,
+        use_auth_token=not config.local_files_only,
     )
 
     for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
