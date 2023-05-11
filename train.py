@@ -152,6 +152,7 @@ def train(config: Config):
         plugins=custom_ckpt,
         max_epochs=config.max_epochs,
         max_steps=config.max_steps,
+        devices=config.devices,
         val_check_interval=config.val_check_interval,
         check_val_every_n_epoch=config.check_val_every_n_epoch,
         gradient_clip_val=config.gradient_clip_val,

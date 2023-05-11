@@ -16,6 +16,7 @@ class Config(SConfig):
     max_length: int
     align_long_axis: bool
     num_nodes: int
+    devices: List[int]
     seed: int
     lr: float
     warmup_steps: int
