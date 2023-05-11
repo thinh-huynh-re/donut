@@ -38,6 +38,8 @@ class DonutRawDataset(Dataset):
         dataset_name_or_path: str = "dataset/DocumentUnderstanding/receipts",
         split: str = "train",
     ):
+        from PIL import ImageFile
+        ImageFile.LOAD_TRUNCATED_IMAGES = True
         exts = ["jpg", "png", "jpeg"]
 
         dataset_dir = os.path.join('dataset', dataset_name_or_path, split)
