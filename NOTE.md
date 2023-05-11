@@ -72,5 +72,5 @@ python train.py --config config/train_receipts.yaml
 ### Train using cached datasets and cached models only (no internet connection required)
 
 ```
-python train.py --config config/train_receipts_local.yaml --device [2]
+python train.py --config config/train_receipts_local.yaml --devices [2]
 ```
