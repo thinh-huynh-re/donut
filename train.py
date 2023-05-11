@@ -104,6 +104,7 @@ def train(config: Config):
                     if "docvqa" in dataset_name_or_path
                     else f"<s_{task_name}>",
                     sort_json_key=config.sort_json_key,
+                    local_files_only=config.local_files_only,
                 )
             )
             # prompt_end_token is used for ignoring a given prompt in a loss function
