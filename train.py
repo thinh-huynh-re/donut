@@ -23,6 +23,8 @@ from config import Config
 from donut import DonutDataset
 from lightning_module import DonutDataPLModule, DonutModelPLModule
 
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
+
 
 class CustomCheckpointIO(CheckpointIO):
     def save_checkpoint(self, checkpoint, path, storage_options=None):
