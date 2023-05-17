@@ -56,7 +56,10 @@
       "request": "launch",
       "program": "analyze_dataset.py",
       "console": "integratedTerminal",
-      "args": ["--config", "config/train_receipts_local.yaml"],
+      "args": [
+        "--config",
+        "config/train_receipts_local.yaml"
+      ],
       "justMyCode": false
     },
     {
@@ -65,8 +68,37 @@
       "request": "launch",
       "program": "extract_dataset.py",
       "console": "integratedTerminal",
-      "args": ["--config", "config/train_cord.yaml"],
+      "args": [
+        "--config",
+        "config/train_cord.yaml"
+      ],
       "justMyCode": true
-    }
+    },
+    {
+      "name": "Test receipts",
+      "type": "python",
+      "request": "launch",
+      "program": "test.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--pretrained_model_name_or_path",
+        "result/train_receipts_local/20230511_144806",
+        "--dataset_name_or_path",
+        "DocumentUnderstanding/receipts-parquet"
+      ],
+      "justMyCode": true
+    },
+    {
+      "name": "Test receipts v2",
+      "type": "python",
+      "request": "launch",
+      "program": "test.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--result_dir",
+        "result/train_receipts_local/20230511_144806",
+      ],
+      "justMyCode": true
+    },
   ]
 }

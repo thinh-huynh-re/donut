@@ -8,7 +8,7 @@ import os
 from logging import Logger
 from os.path import basename
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import pytorch_lightning as pl
 import torch
@@ -22,16 +22,22 @@ from tap import Tap
 from config import Config
 from donut import DonutDataset
 from lightning_module import DonutDataPLModule, DonutModelPLModule
+from lightning_fabric.utilities.types import _PATH
 
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "max_split_size_mb:512"
 
 
 class CustomCheckpointIO(CheckpointIO):
-    def save_checkpoint(self, checkpoint, path, storage_options=None):
+    def save_checkpoint(
+        self,
+        checkpoint: Dict[str, Any],
+        path: _PATH,
+        storage_options: Optional[Any] = None,
+    ):
         del checkpoint["state_dict"]
         torch.save(checkpoint, path)
 
-    def load_checkpoint(self, path, storage_options=None):
+    def load_checkpoint(self, path: _PATH, map_location: Optional[Any] = None):
         checkpoint = torch.load(path + "artifacts.ckpt")
         state_dict = torch.load(path + "pytorch_model.bin")
         checkpoint["state_dict"] = {
@@ -39,7 +45,7 @@ class CustomCheckpointIO(CheckpointIO):
         }
         return checkpoint
 
-    def remove_checkpoint(self, path) -> None:
+    def remove_checkpoint(self, path: _PATH) -> None:
         return super().remove_checkpoint(path)
 
 
