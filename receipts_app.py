@@ -8,9 +8,10 @@ https://github.com/clovaai/donut
 import gradio as gr
 
 from donut import DonutModel
+from PIL import Image
 
 
-def demo_process(input_img):
+def demo_process(input_img: Image):
     global pretrained_model, task_prompt, task_name
     # input_img = Image.fromarray(input_img)
     output = pretrained_model.inference(image=input_img, prompt=task_prompt)[
@@ -41,7 +42,13 @@ More CORD receipt images are available at https://huggingface.co/datasets/naver-
 
 More details are available at:
 - Paper: https://arxiv.org/abs/2111.15664
-- GitHub: https://github.com/clovaai/donut""",
+- GitHub: https://github.com/clovaai/donut
+
+No. parameters: 
+No. tokens:
+Task prompt: {task_prompt}
+
+""",
     examples=[
         ["sample_image_cord_test_receipt_00004.png"],
         ["sample_image_cord_test_receipt_00012.png"],
