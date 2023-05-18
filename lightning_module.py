@@ -4,10 +4,10 @@ Copyright (c) 2022-present NAVER Corp.
 MIT License
 """
 import math
-import os
 import random
 import re
 from pathlib import Path
+from typing import List, Union
 
 import numpy as np
 import pytorch_lightning as pl
@@ -17,6 +17,10 @@ from pytorch_lightning.utilities import rank_zero_only
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
+
+from pytorch_lightning.utilities.types import (
+    EPOCH_OUTPUT,
+)
 
 from config import Config
 from donut import DonutConfig, DonutModel
@@ -34,10 +38,9 @@ class DonutModelPLModule(pl.LightningModule):
                 max_length=self.config.max_length,
                 align_long_axis=self.config.align_long_axis,
                 ignore_mismatched_sizes=True,
-                local_files_only=self.config.local_files_only, # default
+                local_files_only=self.config.local_files_only,  # default
                 tokenizer_name_or_path=self.config.tokenizer_name_or_path,
-                use_local_files_only=self.config.local_files_only, # to tell submodules in DonutModel
-
+                use_local_files_only=self.config.local_files_only,  # to tell submodules in DonutModel
                 # config=DonutConfig(
                 #     input_size=self.config.input_size,
                 #     max_length=self.config.max_length,
@@ -104,7 +107,9 @@ class DonutModelPLModule(pl.LightningModule):
 
         return scores
 
-    def validation_epoch_end(self, validation_step_outputs):
+    def validation_epoch_end(
+        self, validation_step_outputs: Union[EPOCH_OUTPUT, List[EPOCH_OUTPUT]]
+    ):
         num_of_loaders = len(self.config.dataset_name_or_paths)
         if num_of_loaders == 1:
             validation_step_outputs = [validation_step_outputs]
