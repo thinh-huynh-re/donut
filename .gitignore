@@ -147,3 +147,5 @@ dmypy.json
 
 wandb
 result.zip
+
+synthdog/outputs

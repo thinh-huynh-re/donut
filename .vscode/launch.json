@@ -100,5 +100,17 @@
       ],
       "justMyCode": true
     },
+    {
+      "name": "Analyze dataset for pretraining",
+      "type": "python",
+      "request": "launch",
+      "program": "analyze_dataset.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--config",
+        "config/pretrain/v1.0.0.yaml"
+      ],
+      "justMyCode": false
+    },
   ]
 }

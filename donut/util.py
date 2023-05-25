@@ -18,6 +18,7 @@ import itertools
 import glob
 from tqdm import tqdm
 from PIL import Image
+from PIL import ImageFile
 
 from donut.model import DonutModel
 
@@ -38,16 +39,13 @@ class DonutRawDataset(Dataset):
         dataset_name_or_path: str = "dataset/DocumentUnderstanding/receipts",
         split: str = "train",
     ):
-        from PIL import ImageFile
         ImageFile.LOAD_TRUNCATED_IMAGES = True
         exts = ["jpg", "png", "jpeg"]
 
-        dataset_dir = os.path.join('dataset', dataset_name_or_path, split)
+        dataset_dir = os.path.join("dataset", dataset_name_or_path, split)
 
         image_paths = list(
-            itertools.chain(
-                *[glob.glob(f"{dataset_dir}/*.{ext}") for ext in exts]
-            )
+            itertools.chain(*[glob.glob(f"{dataset_dir}/*.{ext}") for ext in exts])
         )
         json_paths = glob.glob(f"{dataset_dir}/*.json")
 
