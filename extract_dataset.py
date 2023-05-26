@@ -3,8 +3,9 @@ import json
 import os
 import shutil
 from os.path import basename
-from typing import List, Optional
+from typing import Dict, List, Optional
 
+from pprint import pprint
 from datasets import load_dataset
 from PIL import Image
 from tap import Tap
@@ -14,84 +15,153 @@ from config import Config
 from donut.model import DonutModel
 from lightning_module import DonutModelPLModule
 
+"""
+Extract HuggingFace (HF) datasets into directories/files structure format
+
+dataset
+|- extracted_datasets
+    |- cord-v2
+        |- train.json
+        |- train
+            |- x.png
+        |- valiation.json
+        |- validation
+            |- x.png
+        |- test.json
+        |- test
+            |- x.png
+        
+
+*Note*: Internet connection is required!
+
+Conventionally, the format of HF datasets is as follows:
+1, `split` can be 'train', 'validation', 'test'
+2, each record is a dictionary with the following keys
+    {
+        "image": PIL.Image.Image,
+        "ground_truth": str
+    }
+
+We convert these with the following criteria:
+1, Each image is located in a separated file
+2, A metadata specifies details about the dataset:
+    {
+        # before processing all records in the dataset
+        "before": {
+            "vocab_size": int,
+            "special_tokens": List[str],
+        },
+        "data": [
+            {
+                "gt_token_sequences": ["str",...], # each image can contain multiple ground truth
+                "image_path": str
+            },
+            ...
+        ],
+        # after processing all records in the dataset, 
+        # there are some new additional special tokens
+        "after": {
+            "vocab_size": int,
+            "special_tokens": List[str],
+        },
+    }
+"""
+
+
+def ground_truth_to_gt_json(sample: Dict[str, str]) -> List[Dict]:
+    ground_truth = json.loads(sample["ground_truth"])
+    if (
+        "gt_parses" in ground_truth
+    ):  # when multiple ground truths are available, e.g., docvqa
+        assert isinstance(ground_truth["gt_parses"], list)
+        gt_jsons = ground_truth["gt_parses"]
+    else:
+        assert "gt_parse" in ground_truth and isinstance(ground_truth["gt_parse"], dict)
+        gt_jsons = [ground_truth["gt_parse"]]
+    return gt_jsons
+
 
 def extract_dataset(config: Config):
     model_module = DonutModelPLModule(config)
-
-    dataset_name_or_path = "naver-clova-ix/cord-v2"
-    extracted_dataset_dir = "dataset/extracted_datasets/cord-v2"
-    split = "train"
-
-    dir_path = os.path.join(extracted_dataset_dir, split)
-
-    shutil.rmtree(dir_path, ignore_errors=True)
-    os.makedirs(dir_path, exist_ok=True)
-
-    task_name = os.path.basename(
-        dataset_name_or_path
-    )  # e.g., cord-v2, docvqa, rvlcdip, ...
-
-    dataset_name_or_path = dataset_name_or_path
     donut_model: DonutModel = model_module.model
-    max_length = config.max_length
-    split = split
-    task_start_token = f"<s_{task_name}>"
-    prompt_end_token = f"<s_{task_name}>"
-    sort_json_key = config.sort_json_key
-    # prompt_end_token is used for ignoring a given prompt in a loss function
-    # for docvqa task, i.e., {"question": {used as a prompt}, "answer": {prediction target}},
-    # set prompt_end_token to "<s_answer>"
 
-    dataset = load_dataset(
-        dataset_name_or_path,
-        split=split,
-        cache_dir=os.path.join("dataset", dataset_name_or_path),
-        use_auth_token=not config.local_files_only,
-    )
+    for i in range(len(config.dataset_name_or_paths)):
+        # "naver-clova-ix/cord-v2"
+        dataset_name_or_path = config.dataset_name_or_paths[i]
 
-    for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
-        ground_truth = json.loads(sample["ground_truth"])
-        if (
-            "gt_parses" in ground_truth
-        ):  # when multiple ground truths are available, e.g., docvqa
-            assert isinstance(ground_truth["gt_parses"], list)
-            gt_jsons = ground_truth["gt_parses"]
-        else:
-            assert "gt_parse" in ground_truth and isinstance(
-                ground_truth["gt_parse"], dict
+        # "dataset/extracted_datasets/cord-v2"
+        extracted_dataset_dir = os.path.join(
+            "dataset/extracted_datasets", os.path.basename(dataset_name_or_path)
+        )
+
+        for split in config.splits[i]:
+            dir_path = os.path.join(extracted_dataset_dir, split)
+
+            shutil.rmtree(dir_path, ignore_errors=True)
+            os.makedirs(dir_path, exist_ok=True)
+
+            sort_json_key = config.sort_json_key
+
+            dataset = load_dataset(
+                dataset_name_or_path,
+                split=split,
+                cache_dir=os.path.join("dataset", dataset_name_or_path),
+                use_auth_token=not config.local_files_only,
             )
-            gt_jsons = [ground_truth["gt_parse"]]
+            metadata = {
+                "before": {
+                    "vocab_size": len(donut_model.decoder.tokenizer),
+                    "special_tokens": donut_model.decoder.tokenizer.all_special_tokens,
+                },
+                "data": [],
+                "after": {
+                    "vocab_size": None,
+                    "special_tokens": None,
+                },
+                "additional_special_tokens": [],
+            }
 
-        gt_token_sequences: List[str] = [
-            task_start_token
-            + donut_model.json2tokenv2(
-                gt_json,
-                update_special_tokens_for_json_key=split == "train",
-                sort_json_key=sort_json_key,
+            for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
+                gt_jsons = ground_truth_to_gt_json(sample)
+
+                image_path = os.path.join(dir_path, f"{i}.png")
+
+                image: Image.Image = sample["image"]
+                image.save(image_path)
+
+                metadata["data"].append(
+                    {
+                        "gt_token_sequences": [
+                            donut_model.json2token_v2(
+                                gt_json,
+                                # update_special_tokens_for_json_key=split == "train",
+                                update_special_tokens_for_json_key=True,
+                                sort_json_key=sort_json_key,
+                            )
+                            for gt_json in gt_jsons
+                        ],
+                        "image_path": f"{split}/{i}.png",
+                    }
+                )
+
+                if i > 10:
+                    break
+
+            metadata["after"]["vocab_size"] = len(donut_model.decoder.tokenizer)
+            metadata["after"][
+                "special_tokens"
+            ] = donut_model.decoder.tokenizer.all_special_tokens
+            metadata["additional_special_tokens"] = list(
+                donut_model.additional_special_tokens
             )
-            + donut_model.decoder.tokenizer.eos_token
-            for gt_json in gt_jsons  # load json from list of json
-        ]
-        assert len(gt_token_sequences) == 1, f"len = {len(gt_token_sequences)}"
+            pprint(metadata["additional_special_tokens"])
 
-        gt_token_sequence = gt_token_sequences[0]
-        with open(os.path.join(dir_path, f"{i}.html"), "w", encoding="utf8") as f:
-            f.write(gt_token_sequence)
-
-        with open(
-            os.path.join(dir_path, f"{i}.json"), "w", encoding="utf8"
-        ) as json_file:
-            json.dump(ground_truth, json_file, ensure_ascii=False, indent=4)
-
-        image: Image.Image = sample["image"]
-        image.save(os.path.join(dir_path, f"{i}.png"))
-
-    donut_model.decoder.add_special_tokens([task_start_token, prompt_end_token])
-    prompt_end_token_id = donut_model.decoder.tokenizer.convert_tokens_to_ids(
-        prompt_end_token
-    )
-    tokenizer = donut_model.decoder.tokenizer
-    print("Done", tokenizer)
+            with open(
+                os.path.join(extracted_dataset_dir, f"{split}.json"),
+                "w",
+                encoding="utf8",
+            ) as json_file:
+                json.dump(metadata, json_file, ensure_ascii=False, indent=4)
 
 
 class ArgumentParser(Tap):
@@ -113,5 +183,9 @@ if __name__ == "__main__":
         if not args.exp_version
         else args.exp_version
     )
+
+    # Validation
+    assert len(config.dataset_name_or_paths) == len(config.splits)
+    pprint(config.asdict())
 
     extract_dataset(config)

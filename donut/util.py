@@ -126,7 +126,7 @@ class DonutDataset(Dataset):
 
         self.gt_token_sequences = []
         self.gt_jsons_list = []  # TODO: remove this
-        for sample in self.dataset:
+        for i, sample in enumerate(tqdm(self.dataset)):
             ground_truth = json.loads(sample["ground_truth"])
             if (
                 "gt_parses" in ground_truth
@@ -153,6 +153,10 @@ class DonutDataset(Dataset):
                     for gt_json in gt_jsons  # load json from list of json
                 ]
             )
+
+            # TODO: remove this
+            if i > 10:
+                break
 
         self.donut_model.decoder.add_special_tokens(
             [self.task_start_token, self.prompt_end_token]

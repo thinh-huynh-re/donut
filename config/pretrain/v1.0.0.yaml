@@ -3,9 +3,15 @@ result_path: "./result"
 pretrained_model_name_or_path: "naver-clova-ix/donut-base" # loading a pre-trained model (from moldehub or path)
 tokenizer_name_or_path: "xlm-roberta-base" # loading a pre-trained model (from moldehub or path)
 dataset_name_or_paths: # loading datasets (from moldehub or path)
-  - "naver-clova-ix/synthdog-en"
-  - "naver-clova-ix/synthdog-ja"
-  - "naver-clova-ix/synthdog-ko"
+  - "naver-clova-ix/cord-v2"
+  # - "naver-clova-ix/synthdog-en"
+  # - "naver-clova-ix/synthdog-ja"
+  # - "naver-clova-ix/synthdog-ko"
+splits:
+  - ["train", "validation", "test"]
+  # - ["train", "validation"]
+  # - ["train", "validation"]
+  # - ["train", "validation"]
 task_start_tokens: ["pretrain", "pretrain", "pretrain"]
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
 train_batch_sizes: [1]

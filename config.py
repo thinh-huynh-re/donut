@@ -16,6 +16,7 @@ class Config(SConfig):
     max_length: int
     align_long_axis: bool
     num_nodes: int
+    splits: List[List[int]]
     devices: List[int]
     seed: int
     lr: float
@@ -30,6 +31,7 @@ class Config(SConfig):
     verbose: bool
     local_files_only: bool
     task_start_tokens: List[int]
+    hehe: int = 100
 
     wandb: bool
     exp_name: str

@@ -174,14 +174,18 @@ class BARTDecoder(nn.Module):
         self.decoder_layer = decoder_layer
         self.max_position_embeddings = max_position_embeddings
 
-        tokenizer_name_or_path = "hyunwoongko/asian-bart-ecjk" if not tokenizer_name_or_path else tokenizer_name_or_path
+        tokenizer_name_or_path = (
+            "hyunwoongko/asian-bart-ecjk"
+            if not tokenizer_name_or_path
+            else tokenizer_name_or_path
+        )
         self.tokenizer: XLMRobertaTokenizer = XLMRobertaTokenizer.from_pretrained(
             tokenizer_name_or_path,
             local_files_only=local_files_only,
             cache_dir=os.path.join("model", tokenizer_name_or_path),
         )
-        
-        print('Size of tokenizer: ', len(self.tokenizer))
+
+        print("Size of tokenizer: ", len(self.tokenizer))
 
         self.model = MBartForCausalLM(
             config=MBartConfig(
@@ -435,6 +439,7 @@ class DonutConfig(PretrainedConfig):
         self.tokenizer_name_or_path = tokenizer_name_or_path
         self.use_local_files_only = use_local_files_only
 
+
 class DonutModel(PreTrainedModel):
     r"""
     Donut: an E2E OCR-free Document Understanding Transformer.
@@ -462,6 +467,7 @@ class DonutModel(PreTrainedModel):
             tokenizer_name_or_path=self.config.tokenizer_name_or_path,
             local_files_only=self.config.use_local_files_only,
         )
+        self.additional_special_tokens = set()
 
     def forward(
         self,
@@ -622,7 +628,7 @@ class DonutModel(PreTrainedModel):
                 obj = f"<{obj}/>"  # for categorical special tokens
             return obj
 
-    def json2tokenv2(
+    def json2token_v2(
         self,
         obj: Any,
         update_special_tokens_for_json_key: bool = True,
@@ -643,6 +649,8 @@ class DonutModel(PreTrainedModel):
                 for k in keys:
                     if update_special_tokens_for_json_key:
                         self.decoder.add_special_tokens([rf"<s_{k}>", rf"</s_{k}>"])
+                        self.additional_special_tokens.add(rf"<s_{k}>")
+                        self.additional_special_tokens.add(rf"</s_{k}>")
                     output += (
                         rf"<s_{k}>"
                         + self.json2token(
@@ -652,7 +660,7 @@ class DonutModel(PreTrainedModel):
                     )
                 return output
         elif type(obj) == list:
-            return r"<sep>".join(
+            return r"<sep/>".join(
                 [
                     self.json2token(
                         item, update_special_tokens_for_json_key, sort_json_key
