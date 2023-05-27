@@ -31,7 +31,7 @@ class Config(SConfig):
     verbose: bool
     local_files_only: bool
     task_start_tokens: List[int]
-    hehe: int = 100
+    preload: bool = False
 
     wandb: bool
     exp_name: str

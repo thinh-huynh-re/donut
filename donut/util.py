@@ -18,6 +18,7 @@ import itertools
 import glob
 from tqdm import tqdm
 from PIL import Image
+import copy
 from PIL import ImageFile
 
 from donut.model import DonutModel
@@ -33,7 +34,15 @@ def load_json(json_path: Union[str, bytes, os.PathLike]):
         return json.load(f)
 
 
-class DonutRawDataset(Dataset):
+class DonutRawDatasetV1(Dataset):
+    """
+    Directory format:
+        train
+        - <name>.<jpg|png|jpeg>
+        - <name>.json
+        ...
+    """
+
     def __init__(
         self,
         dataset_name_or_path: str = "dataset/DocumentUnderstanding/receipts",
@@ -75,6 +84,89 @@ class DonutRawDataset(Dataset):
         return self.metadata[idx]
 
 
+class DonutRawDatasetV2(Dataset):
+    """
+    Directory format:
+        metadata.json
+        train
+        - <name>.<jpg|png|jpeg>
+        validation
+        - <name>.<jpg|png|jpeg>
+        test
+        - <name>.<jpg|png|jpeg>
+    """
+
+    def __init__(
+        self,
+        task_start_token: str,
+        eos_token: str,
+        dataset_name_or_path: str = "dataset/DocumentUnderstanding/receipts",
+        split: str = "train",
+        preload: bool = False,
+    ):
+        dataset_dir = os.path.join("dataset", dataset_name_or_path, split)
+
+        with open(os.path.join(dataset_dir, "metadata.json"), encoding="utf-8") as fh:
+            raw_metadata = json.load(fh)
+
+        """
+        [
+            {
+                "gt_token_sequences": [
+                    "<s_menu><s_nm>Nasi Campur Bali</s_nm><s_cnt>1 x</s_cnt><s_price>75,000</s_price><sep/><s_nm>Bbk Bengil Nasi</s_nm><s_cnt>1 x</s_cnt><s_price>125,000</s_price><sep/><s_nm>MilkShake Starwb</s_nm><s_cnt>1 x</s_cnt><s_price>37,000</s_price><sep/><s_nm>Ice Lemon Tea</s_nm><s_cnt>1 x</s_cnt><s_price>24,000</s_price><sep/><s_nm>Nasi Ayam Dewata</s_nm><s_cnt>1 x</s_cnt><s_price>70,000</s_price><sep/><s_nm>Free Ice Tea</s_nm><s_cnt>3 x</s_cnt><s_price>0</s_price><sep/><s_nm>Organic Green Sa</s_nm><s_cnt>1 x</s_cnt><s_price>65,000</s_price><sep/><s_nm>Ice Tea</s_nm><s_cnt>1 x</s_cnt><s_price>18,000</s_price><sep/><s_nm>Ice Orange</s_nm><s_cnt>1 x</s_cnt><s_price>29,000</s_price><sep/><s_nm>Ayam Suir Bali</s_nm><s_cnt>1 x</s_cnt><s_price>85,000</s_price><sep/><s_nm>Tahu Goreng</s_nm><s_cnt>2 x</s_cnt><s_price>36,000</s_price><sep/><s_nm>Tempe Goreng</s_nm><s_cnt>2 x</s_cnt><s_price>36,000</s_price><sep/><s_nm>Tahu Telor Asin</s_nm><s_cnt>1 x</s_cnt><s_price>40,000.</s_price><sep/><s_nm>Nasi Goreng Samb</s_nm><s_cnt>1 x</s_cnt><s_price>70,000</s_price><sep/><s_nm>Bbk Panggang Sam</s_nm><s_cnt>3 x</s_cnt><s_price>366,000</s_price><sep/><s_nm>Ayam Sambal Hija</s_nm><s_cnt>1 x</s_cnt><s_price>92,000</s_price><sep/><s_nm>Hot Tea</s_nm><s_cnt>2 x</s_cnt><s_price>44,000</s_price><sep/><s_nm>Ice Kopi</s_nm><s_cnt>1 x</s_cnt><s_price>32,000</s_price><sep/><s_nm>Tahu Telor Asin</s_nm><s_cnt>1 x</s_cnt><s_price>40,000</s_price><sep/><s_nm>Free Ice Tea</s_nm><s_cnt>1 x</s_cnt><s_price>0</s_price><sep/><s_nm>Bebek Street</s_nm><s_cnt>1 x</s_cnt><s_price>44,000</s_price><sep/><s_nm>Ice Tea Tawar</s_nm><s_cnt>1 x</s_cnt><s_price>18,000</s_price></s_menu><s_sub_total><s_subtotal_price>1,346,000</s_subtotal_price><s_service_price>100,950</s_service_price><s_tax_price>144,695</s_tax_price><s_etc>-45</s_etc></s_sub_total><s_total><s_total_price>1,591,600</s_total_price></s_total>"
+                ],
+                "image_path": "train/0.png"
+            },
+            ...
+        ]
+        """
+        self.metadata: List[Dict[str, Any]] = raw_metadata["splits"][split]["data"]
+
+        """
+        [
+            "<s_subtotal_price>",
+            "<s_sub_total>",
+            "<s_itemsubtotal>",
+            ...
+        ]
+        """
+        self.additional_special_tokens: List[str] = raw_metadata["after"][
+            "additional_special_tokens"
+        ]["items"]
+
+        # Add <task_start_token> at the beginning of the sentence
+        # and add <eos_token> at the end of the sentence
+        for d in self.metadata:
+            d["gt_token_sequences"] = [
+                task_start_token + gt_token_sequence + eos_token
+                for gt_token_sequence in d["gt_token_sequences"]
+            ]
+
+        # Preload images in-memory. Make sure you have enough RAM.when preload=True
+        self.preload = preload
+        if preload:
+            for d in self.metadata:
+                d["image"] = Image.open(d["image_path"])
+
+    def __len__(self) -> int:
+        return len(self.metadata)
+
+    def __getitem__(self, idx: int) -> Tuple[Dict[str, Any]]:
+        """
+        {
+            "image": PIL.Image.Image,
+            "image_path": str,
+            "gt_token_sequences": List[str]
+        }
+        """
+        if self.preload:
+            return self.metadata[idx]
+        else:
+            data = copy.deepcopy(self.metadata[idx])
+            data["image"] = Image.open(data["image_path"])
+            return data
+
+
 class DonutDataset(Dataset):
     """
     DonutDataset which is saved in huggingface datasets format. (see details in https://huggingface.co/docs/datasets)
@@ -112,7 +204,7 @@ class DonutDataset(Dataset):
         self.sort_json_key = sort_json_key
 
         if local_files_only:
-            self.dataset = DonutRawDataset(dataset_name_or_path, split)
+            self.dataset = DonutRawDatasetV1(dataset_name_or_path, split)
         else:
             self.dataset = load_dataset(
                 dataset_name_or_path,
@@ -154,10 +246,6 @@ class DonutDataset(Dataset):
                 ]
             )
 
-            # TODO: remove this
-            if i > 10:
-                break
-
         self.donut_model.decoder.add_special_tokens(
             [self.task_start_token, self.prompt_end_token]
         )
@@ -190,6 +278,110 @@ class DonutDataset(Dataset):
         # input_ids
         processed_parse = random.choice(
             self.gt_token_sequences[idx]
+        )  # can be more than one, e.g., DocVQA Task 1
+        input_ids = self.donut_model.decoder.tokenizer(
+            processed_parse,
+            add_special_tokens=False,
+            max_length=self.max_length,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )["input_ids"].squeeze(0)
+
+        if self.split == "train":
+            labels = input_ids.clone()
+            labels[
+                labels == self.donut_model.decoder.tokenizer.pad_token_id
+            ] = self.ignore_id  # model doesn't need to predict pad token
+            labels[
+                : torch.nonzero(labels == self.prompt_end_token_id).sum() + 1
+            ] = self.ignore_id  # model doesn't need to predict prompt (for VQA)
+            return input_tensor, input_ids, labels
+        else:
+            prompt_end_index = torch.nonzero(
+                input_ids == self.prompt_end_token_id
+            ).sum()  # return prompt end index instead of target output labels
+            return input_tensor, input_ids, prompt_end_index, processed_parse
+
+
+class DonutDatasetV2(Dataset):
+    """
+    DonutDataset which is saved in huggingface datasets format. (see details in https://huggingface.co/docs/datasets)
+    Each row, consists of image path(png/jpg/jpeg) and gt data (json/jsonl/txt),
+    and it will be converted into input_tensor(vectorized image) and input_ids(tokenized string)
+
+    Args:
+        dataset_name_or_path: name of dataset (available at huggingface.co/datasets) or the path containing image files and metadata.jsonl
+        ignore_id: ignore_index for torch.nn.CrossEntropyLoss
+        task_start_token: the special token to be fed to the decoder to conduct the target task
+    """
+
+    def __init__(
+        self,
+        dataset_name_or_path: str,
+        donut_model: DonutModel,
+        max_length: int,
+        split: str = "train",
+        ignore_id: int = -100,
+        task_start_token: str = "<s>",
+        prompt_end_token: str = None,
+        sort_json_key: bool = True,
+        preload: bool = False,
+    ):
+        super().__init__()
+
+        self.donut_model: DonutModel = donut_model
+        self.max_length = max_length
+        self.split = split
+        self.ignore_id = ignore_id
+        self.task_start_token = task_start_token
+        self.prompt_end_token = (
+            prompt_end_token if prompt_end_token else task_start_token
+        )
+        self.sort_json_key = sort_json_key
+
+        self.dataset = DonutRawDatasetV2(
+            task_start_token=task_start_token,
+            eos_token=self.donut_model.decoder.tokenizer.eos_token,
+            dataset_name_or_path=dataset_name_or_path,
+            split=split,
+            preload=preload,
+        )
+        self.dataset_length = len(self.dataset)
+
+        self.donut_model.decoder.add_special_tokens(
+            self.dataset.additional_special_tokens
+            + [self.task_start_token, self.prompt_end_token]
+        )
+        self.prompt_end_token_id = (
+            self.donut_model.decoder.tokenizer.convert_tokens_to_ids(
+                self.prompt_end_token
+            )
+        )
+
+    def __len__(self) -> int:
+        return self.dataset_length
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Load image from image_path of given dataset_path and convert into input_tensor and labels.
+        Convert gt data into input_ids (tokenized string)
+
+        Returns:
+            input_tensor : preprocessed image
+            input_ids : tokenized gt_data
+            labels : masked labels (model doesn't need to predict prompt and pad token)
+        """
+        sample = self.dataset[idx]
+
+        # input_tensor
+        input_tensor = self.donut_model.encoder.prepare_input(
+            sample["image"], random_padding=self.split == "train"
+        )
+
+        # input_ids
+        processed_parse = random.choice(
+            sample["gt_token_sequences"]
         )  # can be more than one, e.g., DocVQA Task 1
         input_ids = self.donut_model.decoder.tokenizer(
             processed_parse,
