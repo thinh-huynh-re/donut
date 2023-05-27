@@ -97,6 +97,8 @@ def train(config: Config):
     data_module.train_datasets = datasets["train"]
     data_module.val_datasets = datasets["validation"]
 
+    print("Num. tokens", len(model_module.model.decoder.tokenizer))
+
     loggers: List[Logger] = []
     tb_logger = TensorBoardLogger(
         save_dir=config.result_path,
@@ -130,7 +132,7 @@ def train(config: Config):
     custom_ckpt = CustomCheckpointIO()
     trainer = pl.Trainer(
         resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
-        num_nodes=config.get("num_nodes", 1),
+        # num_nodes=config.get("num_nodes", 1),
         # gpus=torch.cuda.device_count(),
         strategy="ddp",
         accelerator="gpu",
