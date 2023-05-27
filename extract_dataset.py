@@ -82,9 +82,6 @@ def ground_truth_to_gt_json(sample: Dict[str, str]) -> List[Dict]:
 
 
 def extract_dataset(config: Config):
-    model_module = DonutModelPLModule(config)
-    donut_model: DonutModel = model_module.model
-
     for i in range(len(config.dataset_name_or_paths)):
         # "naver-clova-ix/cord-v2"
         dataset_name_or_path = config.dataset_name_or_paths[i]
@@ -93,6 +90,32 @@ def extract_dataset(config: Config):
         extracted_dataset_dir = os.path.join(
             "dataset/extracted_datasets", os.path.basename(dataset_name_or_path)
         )
+
+        model_module = DonutModelPLModule(config)
+        donut_model: DonutModel = model_module.model
+
+        init_vocab = donut_model.decoder.tokenizer.get_vocab()
+        metadata = {
+            "before": {
+                "vocab_size": len(donut_model.decoder.tokenizer),
+                # "special_tokens": donut_model.decoder.tokenizer.all_special_tokens,
+            },
+            "splits": {
+                # "train": {
+                #   "data": [{
+                #       "gt_token_sequences": List[str],
+                #       "image_path": str,
+                #   }],
+                #   "length": int
+                # }
+            },
+            "after": {
+                "vocab_size": None,
+                # "special_tokens": None,
+                "additional_special_tokens": [],
+            },
+            # "added_tokens": [],
+        }
 
         for split in config.splits[i]:
             dir_path = os.path.join(extracted_dataset_dir, split)
@@ -108,18 +131,8 @@ def extract_dataset(config: Config):
                 cache_dir=os.path.join("dataset", dataset_name_or_path),
                 use_auth_token=not config.local_files_only,
             )
-            metadata = {
-                "before": {
-                    "vocab_size": len(donut_model.decoder.tokenizer),
-                    "special_tokens": donut_model.decoder.tokenizer.all_special_tokens,
-                },
-                "data": [],
-                "after": {
-                    "vocab_size": None,
-                    "special_tokens": None,
-                },
-                "additional_special_tokens": [],
-            }
+
+            data = []
 
             for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
                 gt_jsons = ground_truth_to_gt_json(sample)
@@ -129,7 +142,7 @@ def extract_dataset(config: Config):
                 image: Image.Image = sample["image"]
                 image.save(image_path)
 
-                metadata["data"].append(
+                data.append(
                     {
                         "gt_token_sequences": [
                             donut_model.json2token_v2(
@@ -144,24 +157,38 @@ def extract_dataset(config: Config):
                     }
                 )
 
-                if i > 10:
-                    break
+                # if i > 10:
+                #     break
 
-            metadata["after"]["vocab_size"] = len(donut_model.decoder.tokenizer)
-            metadata["after"][
-                "special_tokens"
-            ] = donut_model.decoder.tokenizer.all_special_tokens
-            metadata["additional_special_tokens"] = list(
-                donut_model.additional_special_tokens
-            )
-            pprint(metadata["additional_special_tokens"])
+            metadata["splits"][split] = {
+                "data": data,
+                "length": len(data),
+            }
 
-            with open(
-                os.path.join(extracted_dataset_dir, f"{split}.json"),
-                "w",
-                encoding="utf8",
-            ) as json_file:
-                json.dump(metadata, json_file, ensure_ascii=False, indent=4)
+        metadata["after"]["vocab_size"] = len(donut_model.decoder.tokenizer)
+        # metadata["after"][
+        #     "special_tokens"
+        # ] = donut_model.decoder.tokenizer.all_special_tokens
+
+        additional_special_tokens = list(donut_model.additional_special_tokens)
+        metadata["after"]["additional_special_tokens"] = {
+            "items": additional_special_tokens,
+            "length": len(additional_special_tokens),
+        }
+        # added_tokens = list(
+        #     set(donut_model.decoder.tokenizer.get_vocab()).difference(init_vocab)
+        # )
+        # metadata["added_tokens"] = {
+        #     "items": added_tokens,
+        #     "length": len(added_tokens),
+        # }
+
+        with open(
+            os.path.join(extracted_dataset_dir, f"metadata.json"),
+            "w",
+            encoding="utf8",
+        ) as json_file:
+            json.dump(metadata, json_file, ensure_ascii=False, indent=4)
 
 
 class ArgumentParser(Tap):

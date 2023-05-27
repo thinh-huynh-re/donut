@@ -653,7 +653,7 @@ class DonutModel(PreTrainedModel):
                         self.additional_special_tokens.add(rf"</s_{k}>")
                     output += (
                         rf"<s_{k}>"
-                        + self.json2token(
+                        + self.json2token_v2(
                             obj[k], update_special_tokens_for_json_key, sort_json_key
                         )
                         + rf"</s_{k}>"
@@ -662,7 +662,7 @@ class DonutModel(PreTrainedModel):
         elif type(obj) == list:
             return r"<sep/>".join(
                 [
-                    self.json2token(
+                    self.json2token_v2(
                         item, update_special_tokens_for_json_key, sort_json_key
                     )
                     for item in obj
