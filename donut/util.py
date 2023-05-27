@@ -104,9 +104,12 @@ class DonutRawDatasetV2(Dataset):
         split: str = "train",
         preload: bool = False,
     ):
-        dataset_dir = os.path.join("dataset", dataset_name_or_path, split)
+        self.dataset_dir = os.path.join("dataset", dataset_name_or_path)
 
-        with open(os.path.join(dataset_dir, "metadata.json"), encoding="utf-8") as fh:
+        with open(
+            os.path.join(self.dataset_dir, "metadata.json"),
+            encoding="utf-8",
+        ) as fh:
             raw_metadata = json.load(fh)
 
         """
@@ -146,7 +149,7 @@ class DonutRawDatasetV2(Dataset):
         self.preload = preload
         if preload:
             for d in self.metadata:
-                d["image"] = Image.open(d["image_path"])
+                d["image"] = Image.open(os.path.join(self.dataset_dir, d["image_path"]))
 
     def __len__(self) -> int:
         return len(self.metadata)
@@ -163,7 +166,9 @@ class DonutRawDatasetV2(Dataset):
             return self.metadata[idx]
         else:
             data = copy.deepcopy(self.metadata[idx])
-            data["image"] = Image.open(data["image_path"])
+            data["image"] = Image.open(
+                os.path.join(self.dataset_dir, data["image_path"])
+            )
             return data
 
 

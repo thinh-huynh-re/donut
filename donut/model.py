@@ -110,7 +110,7 @@ class SwinEncoder(nn.Module):
             x: (batch_size, num_channels, height, width)
         """
         x = self.model.patch_embed(x)
-        x = self.model.pos_drop(x)
+        # x = self.model.pos_drop(x) # TODO: timm==0.6.13
         x = self.model.layers(x)
         return x
 
