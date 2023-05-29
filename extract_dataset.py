@@ -14,6 +14,7 @@ from tqdm import tqdm
 from config import Config
 from donut.model import DonutModel
 from lightning_module import DonutModelPLModule
+from datasets.download import DownloadMode
 
 import numpy as np
 import threading
@@ -169,7 +170,8 @@ def extract_dataset(config: Config):
                 dataset_name_or_path,
                 split=split,
                 cache_dir=os.path.join("dataset", dataset_name_or_path),
-                use_auth_token=not config.local_files_only,
+                download_mode=DownloadMode.REUSE_DATASET_IF_EXISTS,
+                # use_auth_token=not config.local_files_only,
             )
             print(type(dataset))
 
