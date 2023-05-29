@@ -15,6 +15,9 @@ from config import Config
 from donut.model import DonutModel
 from lightning_module import DonutModelPLModule
 
+import numpy as np
+import threading
+
 """
 Extract HuggingFace (HF) datasets into directories/files structure format
 
@@ -81,6 +84,43 @@ def ground_truth_to_gt_json(sample: Dict[str, str]) -> List[Dict]:
     return gt_jsons
 
 
+def thread_fn(
+    data: List[Dict],
+    dataset,
+    indices: List[int],
+    dir_path: str,
+    donut_model: DonutModel,
+    sort_json_key: bool,
+    split: str,
+):
+    for i in tqdm(indices):
+        sample = dataset[int(i)]
+        gt_jsons = ground_truth_to_gt_json(sample)
+
+        image_path = os.path.join(dir_path, f"{i}.png")
+
+        image: Image.Image = sample["image"]
+        image.save(image_path)
+
+        data.append(
+            {
+                "gt_token_sequences": [
+                    donut_model.json2token_v2(
+                        gt_json,
+                        # update_special_tokens_for_json_key=split == "train",
+                        update_special_tokens_for_json_key=True,
+                        sort_json_key=sort_json_key,
+                    )
+                    for gt_json in gt_jsons
+                ],
+                "image_path": f"{split}/{i}.png",
+            }
+        )
+
+
+NUM_THREADS = 6
+
+
 def extract_dataset(config: Config):
     for i in range(len(config.dataset_name_or_paths)):
         # "naver-clova-ix/cord-v2"
@@ -131,34 +171,31 @@ def extract_dataset(config: Config):
                 cache_dir=os.path.join("dataset", dataset_name_or_path),
                 use_auth_token=not config.local_files_only,
             )
+            print(type(dataset))
 
             data = []
 
-            for i, sample in tqdm(enumerate(dataset), total=len(dataset)):
-                gt_jsons = ground_truth_to_gt_json(sample)
-
-                image_path = os.path.join(dir_path, f"{i}.png")
-
-                image: Image.Image = sample["image"]
-                image.save(image_path)
-
-                data.append(
-                    {
-                        "gt_token_sequences": [
-                            donut_model.json2token_v2(
-                                gt_json,
-                                # update_special_tokens_for_json_key=split == "train",
-                                update_special_tokens_for_json_key=True,
-                                sort_json_key=sort_json_key,
-                            )
-                            for gt_json in gt_jsons
-                        ],
-                        "image_path": f"{split}/{i}.png",
-                    }
+            threads = []
+            for i, indices in enumerate(
+                np.array_split(list(range(len(dataset))), NUM_THREADS)
+            ):
+                thread = threading.Thread(
+                    target=thread_fn,
+                    args=(
+                        data,
+                        dataset,
+                        indices,
+                        dir_path,
+                        donut_model,
+                        sort_json_key,
+                        split,
+                    ),
                 )
+                threads.append(thread)
+                thread.start()
 
-                # if i > 10:
-                #     break
+            for thread in threads:
+                thread.join()
 
             metadata["splits"][split] = {
                 "data": data,
