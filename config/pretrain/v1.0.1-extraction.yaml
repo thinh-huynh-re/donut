@@ -33,4 +33,5 @@ check_val_every_n_epoch: 2
 gradient_clip_val: 1.0
 verbose: True
 wandb: True
-local_files_only: False
+local_files_only: True
+preload: False

@@ -139,7 +139,7 @@ class DonutRawDatasetV2(Dataset):
 
         # Add <task_start_token> at the beginning of the sentence
         # and add <eos_token> at the end of the sentence
-        for d in self.metadata:
+        for d in tqdm(self.metadata):
             d["gt_token_sequences"] = [
                 task_start_token + gt_token_sequence + eos_token
                 for gt_token_sequence in d["gt_token_sequences"]
