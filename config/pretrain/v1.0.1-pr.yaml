@@ -23,14 +23,14 @@ align_long_axis: False
 num_nodes: 1
 devices: [0,2]
 seed: 2022
-lr: 3e-5
+lr: 1e-4
 warmup_steps: 375000 # 1004/2*30/10, 10% = num_training_samples_per_epoch / num_workers * max_epochs / 10
 num_training_samples_per_epoch: 250000
 max_epochs: 30
 max_steps: -1
 num_workers: 2
 val_check_interval: 1.0
-check_val_every_n_epoch: 2
+check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
 verbose: True
 wandb: True
