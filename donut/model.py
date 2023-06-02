@@ -199,14 +199,12 @@ class BARTDecoder(nn.Module):
                 add_final_layer_norm=True,
             )
         )
-        self.model.forward = (
-            self.forward
-        )  #  to get cross attentions and utilize `generate` function
+        #  to get cross attentions and utilize `generate` function
+        self.model.forward = self.forward
 
         self.model.config.is_encoder_decoder = True  # to get cross-attention
-        self.add_special_tokens(
-            ["<sep/>"]
-        )  # <sep/> is used for representing a list in a JSON
+        # <sep/> is used for representing a list in a JSON
+        self.add_special_tokens(["<sep/>"])
         self.model.model.decoder.embed_tokens.padding_idx = self.tokenizer.pad_token_id
         self.model.prepare_inputs_for_generation = self.prepare_inputs_for_inference
 

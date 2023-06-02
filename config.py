@@ -36,3 +36,5 @@ class Config(SConfig):
     wandb: bool
     exp_name: str
     exp_version: str
+
+    max_samples: int

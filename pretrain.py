@@ -73,6 +73,14 @@ def train(config: Config):
         task_name = os.path.basename(
             dataset_name_or_path
         )  # e.g., cord-v2, docvqa, rvlcdip, ...
+        task_start_token = (
+            config.task_start_tokens[i]
+            if config.get("task_start_tokens", None)
+            else f"<s_{task_name}>"
+        )
+        prompt_end_token = (
+            "<s_answer>" if "docvqa" in dataset_name_or_path else task_start_token
+        )
 
         for split in ["train", "validation"]:
             datasets[split].append(
@@ -81,12 +89,8 @@ def train(config: Config):
                     donut_model=model_module.model,
                     max_length=config.max_length,
                     split=split,
-                    task_start_token=config.task_start_tokens[i]
-                    if config.get("task_start_tokens", None)
-                    else f"<s_{task_name}>",
-                    prompt_end_token="<s_answer>"
-                    if "docvqa" in dataset_name_or_path
-                    else f"<s_{task_name}>",
+                    task_start_token=task_start_token,
+                    prompt_end_token=prompt_end_token,
                     sort_json_key=config.sort_json_key,
                     preload=config.preload,
                 )
@@ -98,6 +102,8 @@ def train(config: Config):
     data_module.val_datasets = datasets["validation"]
 
     print("Num. tokens", len(model_module.model.decoder.tokenizer))
+
+    p = datasets['train'][0]
 
     loggers: List[Logger] = []
     tb_logger = TensorBoardLogger(

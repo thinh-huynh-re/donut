@@ -177,10 +177,13 @@ def extract_dataset(config: Config):
 
             data = []
 
-            threads = []
-            for i, indices in enumerate(
-                np.array_split(list(range(len(dataset))), NUM_THREADS)
-            ):
+            max_samples = (
+                config.max_samples if config.max_samples is not None else len(dataset)
+            )
+            parts = np.array_split(list(range(max_samples)), NUM_THREADS)
+
+            threads: List[threading.Thread] = []
+            for i, indices in enumerate(parts):
                 thread = threading.Thread(
                     target=thread_fn,
                     args=(

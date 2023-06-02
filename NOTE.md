@@ -80,3 +80,9 @@ python train.py --config config/train_receipts_local.yaml --devices [2]
 ```
 wandb sync <log_dir>
 ```
+
+## Pretrain
+
+```
+python pretrain.py --config pretrain/v1.0.1-pr.yaml
+```

@@ -70,7 +70,7 @@
       "console": "integratedTerminal",
       "args": [
         "--config",
-        "config/pretrain/v1.0.0.yaml"
+        "config/pretrain/v1.0.1-extraction.yaml"
       ],
       "justMyCode": true
     },
@@ -109,6 +109,18 @@
       "args": [
         "--config",
         "config/pretrain/v1.0.0.yaml"
+      ],
+      "justMyCode": false
+    },
+    {
+      "name": "Pretrain",
+      "type": "python",
+      "request": "launch",
+      "program": "pretrain.py",
+      "console": "integratedTerminal",
+      "args": [
+        "--config",
+        "config/pretrain/v1.0.1-debug.yaml"
       ],
       "justMyCode": false
     },
