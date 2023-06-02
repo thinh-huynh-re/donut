@@ -149,3 +149,4 @@ wandb
 result.zip
 
 synthdog/outputs
+wandb_cache
