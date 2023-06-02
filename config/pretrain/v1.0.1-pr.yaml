@@ -15,20 +15,20 @@ splits:
   # - ["train", "validation"]
 task_start_tokens: ["<s_pretrain>"]
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
-train_batch_sizes: [2]
+train_batch_sizes: [3]
 val_batch_sizes: [1]
 input_size: [1280, 960] # when the input resolution differs from the pre-training setting, some weights will be newly initialized (but the model training would be okay)
 max_length: 768
 align_long_axis: False
 num_nodes: 1
-devices: [2]
+devices: [1, 2]
 seed: 2022
 lr: 1e-4
 warmup_steps: 375000 # 1004/2*30/10, 10% = num_training_samples_per_epoch / num_workers * max_epochs / 10
 num_training_samples_per_epoch: 250000
 max_epochs: 30
 max_steps: -1
-num_workers: 2
+num_workers: 3
 val_check_interval: 1.0
 check_val_every_n_epoch: 1
 gradient_clip_val: 1.0
