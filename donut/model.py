@@ -13,6 +13,7 @@ import PIL
 import timm
 import torch
 import torch.nn.functional as F
+import albumentations as A
 from PIL import Image, ImageOps
 from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
@@ -52,6 +53,23 @@ class SwinEncoder(nn.Module):
         self.align_long_axis = align_long_axis
         self.window_size = window_size
         self.encoder_layer = encoder_layer
+
+        self.data_augmentation = A.Compose(
+            [
+                A.CLAHE(),
+                A.RandomRotate90(p=0.5),
+                A.VerticalFlip(p=0.5),
+                A.ShiftScaleRotate(
+                    shift_limit=0.0625, scale_limit=0.50, rotate_limit=10, p=0.75
+                ),
+                A.RandomBrightnessContrast(p=0.2),
+            ]
+        )
+        self.no_data_augmentation = A.Compose(
+            [
+                A.CLAHE(),
+            ]
+        )
 
         self.to_tensor = transforms.Compose(
             [
@@ -114,7 +132,13 @@ class SwinEncoder(nn.Module):
         x = self.model.layers(x)
         return x
 
-    def prepare_input(self, img: Image.Image, random_padding: bool = False) -> Tensor:
+    def prepare_input(
+        self,
+        img: Image.Image,
+        random_padding: bool = False,
+        data_augmentation: bool = False,
+        debug_mode: bool = False,
+    ) -> Tensor:
         """
         Convert PIL Image to tensor according to specified input_size after following steps below:
             - resize
@@ -122,11 +146,20 @@ class SwinEncoder(nn.Module):
             - pad
         """
         img = img.convert("RGB")
-        if self.align_long_axis and (
-            (self.input_size[0] > self.input_size[1] and img.width > img.height)
-            or (self.input_size[0] < self.input_size[1] and img.width < img.height)
-        ):
-            img = rotate(img, angle=-90, expand=True)
+
+        if debug_mode:
+            img.save("tmp/origin.png")
+
+        if data_augmentation:
+            img = Image.fromarray(self.data_augmentation(image=np.array(img))["image"])
+        else:
+            img = Image.fromarray(
+                self.no_data_augmentation(image=np.array(img))["image"]
+            )
+
+        if debug_mode:
+            img.save("tmp/after_data_augmentation.png")
+
         img = resize(img, min(self.input_size))
         img.thumbnail((self.input_size[1], self.input_size[0]))
         delta_width = self.input_size[1] - img.width
@@ -143,7 +176,11 @@ class SwinEncoder(nn.Module):
             delta_width - pad_width,
             delta_height - pad_height,
         )
-        return self.to_tensor(ImageOps.expand(img, padding))
+        img = ImageOps.expand(img, padding)
+        if debug_mode:
+            img.save("tmp/after_padding.png")
+
+        return self.to_tensor(img)
 
 
 class BARTDecoder(nn.Module):

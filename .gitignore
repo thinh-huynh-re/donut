@@ -126,6 +126,7 @@ venv.bak/
 
 # Temporary
 tmp.py
+tmp
 
 # Spyder project settings
 .spyderproject

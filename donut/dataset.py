@@ -327,9 +327,12 @@ class DonutDatasetV2(Dataset):
         prompt_end_token: str = None,
         sort_json_key: bool = True,
         preload: bool = False,
+        debug_mode: bool = False,
+        max_samples: int = -1,
     ):
         super().__init__()
 
+        self.debug_mode = debug_mode
         self.donut_model: DonutModel = donut_model
         self.max_length = max_length
         self.split = split
@@ -347,7 +350,7 @@ class DonutDatasetV2(Dataset):
             split=split,
             preload=preload,
         )
-        self.dataset_length = len(self.dataset)
+        self.dataset_length = len(self.dataset) if max_samples < 0 else max_samples
 
         self.donut_model.decoder.add_special_tokens(
             self.dataset.additional_special_tokens
@@ -376,7 +379,10 @@ class DonutDatasetV2(Dataset):
 
         # input_tensor
         input_tensor = self.donut_model.encoder.prepare_input(
-            sample["image"], random_padding=self.split == "train"
+            sample["image"],
+            random_padding=self.split == "train",
+            data_augmentation=self.split == "train",
+            debug_mode=self.debug_mode,
         )
 
         # input_ids

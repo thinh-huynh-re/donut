@@ -28,6 +28,7 @@ class DonutModelPLModule(pl.LightningModule):
     def __init__(self, config: Config):
         super().__init__()
         self.config = config
+        self.validation_step_outputs = []
 
         if self.config.get("pretrained_model_name_or_path", False):
             self.model: DonutModel = DonutModel.from_pretrained(
@@ -131,16 +132,18 @@ class DonutModelPLModule(pl.LightningModule):
                 self.print(f"Prediction: {pred}")
                 self.print(f"    Answer: {answer}")
                 self.print(f" Normed ED: {scores[0]}")
-
+        self.validation_step_outputs.append(scores)
         return scores
 
-    def on_validation_epoch_end(self, validation_step_outputs):
+    def on_validation_epoch_end(self):
         """
         @Override
         """
         num_of_loaders = len(self.config.dataset_name_or_paths)
         if num_of_loaders == 1:
-            validation_step_outputs = [validation_step_outputs]
+            validation_step_outputs = [self.validation_step_outputs]
+        else:
+            validation_step_outputs = self.validation_step_outputs
         assert len(validation_step_outputs) == num_of_loaders
         cnt = [0] * num_of_loaders
         total_metric = [0] * num_of_loaders
@@ -155,6 +158,7 @@ class DonutModelPLModule(pl.LightningModule):
         self.log_dict(
             {"val_metric": np.sum(total_metric) / np.sum(cnt)}, sync_dist=True
         )
+        self.validation_step_outputs.clear()  # free memory
 
     def configure_optimizers(self):
         r"""

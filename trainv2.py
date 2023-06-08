@@ -57,7 +57,7 @@ def save_config_file(config: Config, path: str) -> None:
     save_path = Path(path) / "config.yaml"
     print(config.dumps())
     with open(save_path, "w") as f:
-        f.write(config.dumps(modified_color=None, quote_str=True))
+        f.write(config.dumps())
         print(f"Config is saved at {save_path}")
 
 
@@ -78,6 +78,11 @@ def prepare_datasets(model_module: DonutModelPLModule, data_module: DonutDataPLM
         )
 
         for split in ["train", "validation"]:
+            max_samples = (
+                config.train_max_samples
+                if split == "train"
+                else config.validation_max_samples
+            )
             datasets[split].append(
                 DonutDatasetV2(
                     dataset_name_or_path=dataset_name_or_path,
@@ -88,6 +93,8 @@ def prepare_datasets(model_module: DonutModelPLModule, data_module: DonutDataPLM
                     prompt_end_token=prompt_end_token,
                     sort_json_key=config.sort_json_key,
                     preload=config.preload,
+                    debug_mode=config.debug_mode,
+                    max_samples=max_samples,
                 )
             )
             # prompt_end_token is used for ignoring a given prompt in a loss function

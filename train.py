@@ -56,7 +56,7 @@ def save_config_file(config: Config, path: str) -> None:
     save_path = Path(path) / "config.yaml"
     print(config.dumps())
     with open(save_path, "w") as f:
-        f.write(config.dumps(modified_color=None, quote_str=True))
+        f.write(config.dumps())
         print(f"Config is saved at {save_path}")
 
 
