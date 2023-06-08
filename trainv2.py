@@ -21,7 +21,7 @@ from tap import Tap
 
 from config import Config
 from donut import DonutDataset
-from donut.util import DonutDatasetV2
+from donut.dataset import DonutDatasetV2
 from lightning_module import DonutDataPLModule, DonutModelPLModule
 from lightning_fabric.utilities.types import _PATH
 

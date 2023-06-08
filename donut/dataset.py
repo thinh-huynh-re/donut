@@ -30,7 +30,7 @@ def save_json(write_path: Union[str, bytes, os.PathLike], save_obj: Any):
 
 
 def load_json(json_path: Union[str, bytes, os.PathLike]):
-    with open(json_path, "r") as f:
+    with open(json_path, mode="r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -68,10 +68,9 @@ class DonutRawDatasetV1(Dataset):
             if json_path not in json_paths:
                 raise Exception(f"JSON not found: {json_path}")
 
-            with open(json_path, encoding="utf-8") as fh:
-                data = json.load(fh)
-                del data["shapes"]
-                ground_truth = json.dumps(data, ensure_ascii=False)
+            data = load_json(json_path)
+            del data["shapes"]
+            ground_truth = json.dumps(data, ensure_ascii=False)
 
             self.metadata.append(
                 dict(image=Image.open(image_path), ground_truth=ground_truth)
@@ -106,11 +105,7 @@ class DonutRawDatasetV2(Dataset):
     ):
         self.dataset_dir = os.path.join("dataset", dataset_name_or_path)
 
-        with open(
-            os.path.join(self.dataset_dir, "metadata.json"),
-            encoding="utf-8",
-        ) as fh:
-            raw_metadata = json.load(fh)
+        raw_metadata = load_json(os.path.join(self.dataset_dir, "metadata.json"))
 
         """
         [

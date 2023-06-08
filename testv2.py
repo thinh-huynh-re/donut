@@ -15,7 +15,7 @@ from config import Config
 
 import json
 from donut import DonutModel, JSONParseEvaluator, save_json
-from donut.util import DonutDataset
+from donut.dataset import DonutDataset
 from lightning_module import DonutModelPLModule
 
 
