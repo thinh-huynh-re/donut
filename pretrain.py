@@ -103,8 +103,6 @@ def train(config: Config):
 
     print("Num. tokens", len(model_module.model.decoder.tokenizer))
 
-    p = datasets['train'][0]
-
     loggers: List[Logger] = []
     tb_logger = TensorBoardLogger(
         save_dir=config.result_path,

@@ -122,6 +122,10 @@
         "--config",
         "config/pretrain/v1.0.1-debug.yaml"
       ],
+      "env": {
+        "WANDB_MODE": "offline",
+        "WANDB_CACHE_DIR": "wandb_cache"
+      },
       "justMyCode": false
     },
   ]

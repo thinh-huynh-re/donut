@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from sconf import Config as SConfig
 
@@ -17,7 +17,7 @@ class Config(SConfig):
     align_long_axis: bool
     num_nodes: int
     splits: List[List[int]]
-    devices: List[int]
+    devices: Union[List[int], str, int]
     seed: int
     lr: float
     warmup_steps: int
