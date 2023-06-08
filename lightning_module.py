@@ -97,7 +97,7 @@ class DonutModelPLModule(pl.LightningModule):
         decoder_input_ids = torch.cat(decoder_input_ids)
         decoder_labels = torch.cat(decoder_labels)
         loss = self.model(image_tensors, decoder_input_ids, decoder_labels)[0]
-        self.log_dict({"train_loss": loss}, sync_dist=True)
+        self.log_dict({"train_loss": loss}, sync_dist=True, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx, dataset_idx=0):

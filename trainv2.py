@@ -140,7 +140,7 @@ def train(config: Config):
     custom_ckpt = CustomCheckpointIO()
     trainer = pl.Trainer(
         # resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
-        strategy="ddp",
+        strategy="ddp_find_unused_parameters_true",
         accelerator="gpu",
         plugins=custom_ckpt,
         max_epochs=config.max_epochs,
