@@ -61,12 +61,7 @@ def save_config_file(config: Config, path: str) -> None:
         print(f"Config is saved at {save_path}")
 
 
-def train(config: Config):
-    # pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
-
-    model_module = DonutModelPLModule(config)
-    data_module = DonutDataPLModule(config)
-
+def prepare_datasets(model_module: DonutModelPLModule, data_module: DonutDataPLModule):
     # add datasets to data_module
     datasets = {"train": [], "validation": []}
     for i, dataset_name_or_path in enumerate(config.dataset_name_or_paths):
@@ -100,6 +95,15 @@ def train(config: Config):
             # set prompt_end_token to "<s_answer>"
     data_module.train_datasets = datasets["train"]
     data_module.val_datasets = datasets["validation"]
+
+
+def train(config: Config):
+    # pl.utilities.seed.seed_everything(config.get("seed", 42), workers=True)
+
+    model_module = DonutModelPLModule(config)
+    data_module = DonutDataPLModule(config)
+
+    prepare_datasets(model_module, data_module)
 
     print("Num. tokens", len(model_module.model.decoder.tokenizer))
 
@@ -135,7 +139,7 @@ def train(config: Config):
 
     custom_ckpt = CustomCheckpointIO()
     trainer = pl.Trainer(
-        resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
+        # resume_from_checkpoint=config.get("resume_from_checkpoint_path", None),
         strategy="ddp",
         accelerator="gpu",
         plugins=custom_ckpt,

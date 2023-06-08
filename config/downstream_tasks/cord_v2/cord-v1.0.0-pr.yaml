@@ -8,7 +8,7 @@ splits:
   - ["train", "validation"]
 task_start_tokens: ["<s_cord_v2>"]
 sort_json_key: False # cord dataset is preprocessed, and publicly available at https://huggingface.co/datasets/naver-clova-ix/cord-v2
-train_batch_sizes: [4]
+train_batch_sizes: [2] # [4]
 val_batch_sizes: [1]
 input_size: [1280, 960] # when the input resolution differs from the pre-training setting, some weights will be newly initialized (but the model training would be okay)
 max_length: 768

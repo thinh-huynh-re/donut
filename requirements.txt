@@ -1,5 +1,5 @@
 torch
-pytorch-lightning==1.9.4
+pytorch-lightning
 sconf
 Pillow
 timm
@@ -13,3 +13,4 @@ wandb
 typed-argument-parser
 black
 gradio
+albumentations

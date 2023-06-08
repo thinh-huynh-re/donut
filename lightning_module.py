@@ -20,10 +20,6 @@ from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
 from torch.optim import Optimizer, Adam
 
-from pytorch_lightning.utilities.types import (
-    EPOCH_OUTPUT,
-)
-
 from config import Config
 from donut import DonutConfig, DonutModel
 
@@ -138,9 +134,7 @@ class DonutModelPLModule(pl.LightningModule):
 
         return scores
 
-    def validation_epoch_end(
-        self, validation_step_outputs: Union[EPOCH_OUTPUT, List[EPOCH_OUTPUT]]
-    ):
+    def on_validation_epoch_end(self, validation_step_outputs):
         """
         @Override
         """
