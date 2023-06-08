@@ -36,3 +36,4 @@ verbose: True
 wandb: True
 local_files_only: True
 preload: False
+accumulate_grad_batches: 5

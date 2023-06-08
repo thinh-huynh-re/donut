@@ -27,6 +27,7 @@ class Config(SConfig):
     num_workers: int
     val_check_interval: float
     check_val_every_n_epoch: int
+    accumulate_grad_batches: int
     gradient_clip_val: float
     verbose: bool
     local_files_only: bool

@@ -128,8 +128,8 @@ def train(config: Config):
         monitor="val_metric",
         dirpath=Path(config.result_path) / config.exp_name / config.exp_version,
         filename="artifacts",
-        save_top_k=1,
-        save_last=False,
+        save_top_k=2,
+        save_last=True,
         mode="min",
     )
 
@@ -148,6 +148,7 @@ def train(config: Config):
         precision=16,
         num_sanity_val_steps=0,
         logger=loggers,
+        accumulate_grad_batches=config.accumulate_grad_batches,
         callbacks=[lr_callback, checkpoint_callback],
     )
 

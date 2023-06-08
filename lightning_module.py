@@ -12,11 +12,13 @@ from typing import List, Union
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from torch import Tensor
 from nltk import edit_distance
 from pytorch_lightning.utilities import rank_zero_only
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim.lr_scheduler import LambdaLR
 from torch.utils.data import DataLoader
+from torch.optim import Optimizer, Adam
 
 from pytorch_lightning.utilities.types import (
     EPOCH_OUTPUT,
@@ -63,7 +65,33 @@ class DonutModelPLModule(pl.LightningModule):
                 )
             )
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch: List[Tensor], batch_idx: int):
+        """
+        Override
+
+        Here you compute and return the training loss and some additional metrics for e.g.
+        the progress bar or logger.
+
+        Args:
+            batch (:class:`~torch.Tensor` | (:class:`~torch.Tensor`, ...) | [:class:`~torch.Tensor`, ...]):
+                The output of your :class:`~torch.utils.data.DataLoader`. A tensor, tuple or list.
+            batch_idx (``int``): Integer displaying index of this batch
+            optimizer_idx (``int``): When using multiple optimizers, this argument will also be present.
+            hiddens (``Any``): Passed in if
+                :paramref:`~pytorch_lightning.core.module.LightningModule.truncated_bptt_steps` > 0.
+
+        Return:
+            Any of.
+
+            - :class:`~torch.Tensor` - The loss tensor
+            - ``dict`` - A dictionary. Can include any keys, but must include the key ``'loss'``
+            - ``None`` - Training will skip to the next batch. This is only for automatic optimization.
+                This is not supported for multi-GPU, TPU, IPU, or DeepSpeed.
+
+        In this step you'd normally do the forward pass and calculate the loss for a batch.
+        You can also do fancier things like multiple forward passes or something model specific.
+
+        """
         image_tensors, decoder_input_ids, decoder_labels = list(), list(), list()
         for batch_data in batch:
             image_tensors.append(batch_data[0])
@@ -77,6 +105,9 @@ class DonutModelPLModule(pl.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx, dataset_idx=0):
+        """
+        Override
+        """
         image_tensors, decoder_input_ids, prompt_end_idxs, answers = batch
         decoder_prompts = pad_sequence(
             [
@@ -110,6 +141,9 @@ class DonutModelPLModule(pl.LightningModule):
     def validation_epoch_end(
         self, validation_step_outputs: Union[EPOCH_OUTPUT, List[EPOCH_OUTPUT]]
     ):
+        """
+        @Override
+        """
         num_of_loaders = len(self.config.dataset_name_or_paths)
         if num_of_loaders == 1:
             validation_step_outputs = [validation_step_outputs]
@@ -129,6 +163,24 @@ class DonutModelPLModule(pl.LightningModule):
         )
 
     def configure_optimizers(self):
+        r"""
+        @Override
+
+        Choose what optimizers and learning-rate schedulers to use in your optimization.
+        Normally you'd need one. But in the case of GANs or similar you might have multiple.
+
+        Return:
+            Any of these 6 options.
+
+            - **Single optimizer**.
+            - **List or Tuple** of optimizers.
+            - **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
+              (or multiple ``lr_scheduler_config``).
+            - **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
+              key whose value is a single LR scheduler or ``lr_scheduler_config``.
+            - **Tuple of dictionaries** as described above, with an optional ``"frequency"`` key.
+            - **None** - Fit will run without any optimizer.
+        """
         max_iter = None
 
         if int(self.config.get("max_epochs", -1)) > 0:
@@ -151,7 +203,7 @@ class DonutModelPLModule(pl.LightningModule):
             )
 
         assert max_iter is not None
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.config.lr)
+        optimizer = Adam(self.parameters(), lr=self.config.lr)
         scheduler = {
             "scheduler": self.cosine_scheduler(
                 optimizer, max_iter, self.config.warmup_steps
@@ -162,14 +214,18 @@ class DonutModelPLModule(pl.LightningModule):
         return [optimizer], [scheduler]
 
     @staticmethod
-    def cosine_scheduler(optimizer, training_steps, warmup_steps):
-        def lr_lambda(current_step):
+    def cosine_scheduler(optimizer: Optimizer, training_steps: int, warmup_steps: int):
+        def lr_lambda(current_step: int):
             if current_step < warmup_steps:
                 return current_step / max(1, warmup_steps)
             progress = current_step - warmup_steps
             progress /= max(1, training_steps - warmup_steps)
             return max(0.0, 0.5 * (1.0 + math.cos(math.pi * progress)))
 
+        """
+        Sets the learning rate of each parameter group to the initial lr
+        times a given function. When last_epoch=-1, sets initial lr as lr.
+        """
         return LambdaLR(optimizer, lr_lambda)
 
     def get_progress_bar_dict(self):
