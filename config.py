@@ -36,6 +36,7 @@ class Config:
         self.task_start_tokens: List[int]
         self.preload: bool = False
         self.debug_mode: bool = False
+        self.data_augmentation: bool = False
 
         self.wandb: bool
         self.exp_name: str

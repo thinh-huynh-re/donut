@@ -83,6 +83,7 @@ def prepare_datasets(model_module: DonutModelPLModule, data_module: DonutDataPLM
                 if split == "train"
                 else config.validation_max_samples
             )
+            data_augmentation = split == "train" and config.data_augmentation
             datasets[split].append(
                 DonutDatasetV2(
                     dataset_name_or_path=dataset_name_or_path,
@@ -95,6 +96,7 @@ def prepare_datasets(model_module: DonutModelPLModule, data_module: DonutDataPLM
                     preload=config.preload,
                     debug_mode=config.debug_mode,
                     max_samples=max_samples,
+                    data_augmentation=data_augmentation,
                 )
             )
             # prompt_end_token is used for ignoring a given prompt in a loss function
@@ -179,7 +181,7 @@ if __name__ == "__main__":
     config = Config(args.config)
     config.argv_update(left_argv)
 
-    config.exp_name = basename(args.config).split(".")[0]
+    config.exp_name = os.path.splitext(basename(args.config))[0]
     config.exp_version = (
         datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         if not args.exp_version

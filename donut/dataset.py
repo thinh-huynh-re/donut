@@ -329,8 +329,10 @@ class DonutDatasetV2(Dataset):
         preload: bool = False,
         debug_mode: bool = False,
         max_samples: int = -1,
+        data_augmentation: bool = False,
     ):
         super().__init__()
+        self.data_augmentation = data_augmentation
 
         self.debug_mode = debug_mode
         self.donut_model: DonutModel = donut_model
@@ -381,7 +383,7 @@ class DonutDatasetV2(Dataset):
         input_tensor = self.donut_model.encoder.prepare_input(
             sample["image"],
             random_padding=self.split == "train",
-            data_augmentation=self.split == "train",
+            data_augmentation=self.data_augmentation,
             debug_mode=self.debug_mode,
         )
 

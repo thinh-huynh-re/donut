@@ -6,10 +6,9 @@ MIT License
 import math
 import os
 import re
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
-import PIL
 import timm
 import torch
 import torch.nn.functional as F
@@ -19,7 +18,7 @@ from timm.data.constants import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
 from timm.models.swin_transformer import SwinTransformer
 from torch import Tensor, nn
 from torchvision import transforms
-from torchvision.transforms.functional import resize, rotate
+from torchvision.transforms.functional import resize
 from transformers import MBartConfig, MBartForCausalLM, XLMRobertaTokenizer
 from transformers.file_utils import ModelOutput
 from transformers.modeling_utils import PretrainedConfig, PreTrainedModel
@@ -42,10 +41,10 @@ class SwinEncoder(nn.Module):
 
     def __init__(
         self,
-        input_size: List[int],
+        input_size: Tuple[int, int],
         align_long_axis: bool,
         window_size: int,
-        encoder_layer: List[int],
+        encoder_layer: Tuple[int, ...],
         name_or_path: Union[str, bytes, os.PathLike] = None,
     ):
         super().__init__()
